@@ -1,0 +1,103 @@
+# -----------------------------
+# Node / TypeScript
+# -----------------------------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-debug.log*
+.eslintcache
+*.tsbuildinfo
+/.ts-node/
+
+# Keep lockfiles! (recommended for reproducible installs)
+# DO NOT ignore: package-lock.json / yarn.lock / pnpm-lock.yaml
+
+# Build outputs
+dist/
+build/
+out/
+lib/
+
+# Coverage
+coverage/
+.nyc_output/
+coverage-final.json
+lcov.info
+
+# -----------------------------
+# Playwright Artifacts
+# -----------------------------
+# Default artifact/report dirs
+playwright-report/
+blob-report/
+test-results/
+# If you use custom artifact dirs, add them here:
+# reports/
+# artifacts/
+
+# Playwright browser downloads cache inside project (if configured)
+# (Global cache is under ~/.cache/ms-playwright and is outside the repo)
+.playwright/
+
+# Common trace & attachment files (usually already under test-results/)
+# Uncomment if your CI drops them in project root:
+# *.trace.zip
+# trace.zip
+
+# -----------------------------
+# Allure (if used)
+# -----------------------------
+allure-results/
+allure-report/
+allure-history/
+.allure/
+
+# -----------------------------
+# Environment / Secrets
+# -----------------------------
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# -----------------------------
+# IDE / Editors
+# -----------------------------
+# WebStorm / JetBrains
+.idea/
+*.iml
+# If you want to share run configurations or code style, unignore selectively:
+# !.idea/runConfigurations/
+# !.idea/codeStyles/
+
+# VS Code (often present even if you use WebStorm)
+.vscode/
+
+# -----------------------------
+# OS junk
+# -----------------------------
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Linux
+.fuse_hidden*
+.nfs*
+
+# -----------------------------
+# Misc temp
+# -----------------------------
+tmp/
+temp/
+*.tmp
+*.swp
+*.swo
+*~
