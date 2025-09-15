@@ -1,0 +1,28 @@
+{
+  "name": "e2e-playwright-tests",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "playwright test",
+    "report": "allure serve allure-results",
+    "json-server": "node_modules/.bin/json-server --watch json.db --port 3000"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@playwright/test": "^1.55.0",
+    "@reportportal/agent-js-playwright": "^5.1.11",
+    "@types/mime-types": "^2.1.4",
+    "@types/node": "^22.13.4",
+    "@zerostep/playwright": "^0.1.5",
+    "allure-playwright": "^3.2.0",
+    "cheerio": "^1.1.2"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "json-server": "^1.0.0-beta.3",
+    "mime-types": "^2.1.35"
+  }
+}
