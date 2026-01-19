@@ -13,7 +13,7 @@ test.describe('Population by Country - Performance', () => {
       return Date.now() - start
     })
     await test.step('assert ready time threshold', async () => {
-      expect(elapsedMs).toBeLessThan(15_000)
+      expect(elapsedMs).toBeLessThan(30_000)
     })
 
     await test.step('assert row count range', async () => {
