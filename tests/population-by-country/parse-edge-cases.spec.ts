@@ -2,7 +2,7 @@ import test from '../../Fixtures/testSetup'
 import { expect } from '@playwright/test'
 import { normalizeNumberText, parseNumber } from './utils'
 
-test.describe('Population by Country - Parse Edge Cases', () => {
+test.describe('Population by Country - Parse Edge Cases #TableTests', () => {
   test('numeric parsing handles unicode minus and non-breaking spaces', async ({ populationPage }) => {
     test.setTimeout(100000)
     await test.step('navigate to population table', async () => {

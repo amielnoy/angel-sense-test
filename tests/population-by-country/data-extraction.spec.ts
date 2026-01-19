@@ -2,7 +2,7 @@ import test from '../../Fixtures/testSetup'
 import { expect } from '@playwright/test'
 import { normalizeNumberText, parseNumber } from './utils'
 
-test.describe('Population by Country - Data Extraction', () => {
+test.describe('Population by Country - Data Extraction #TableTests', () => {
   test('UI data matches HTML fallback for sampled rows', async ({ populationPage }) => {
     test.setTimeout(100000)
     await test.step('navigate to population table', async () => {

@@ -7,7 +7,7 @@ const tryAccessibilitySnapshot = async (page: Page) => {
   return pageAny.accessibility.snapshot()
 }
 
-test.describe('Population by Country - Accessibility Smoke', () => {
+test.describe('Population by Country - Accessibility Smoke #TableTests', () => {
   test('table and search are exposed to accessibility tree', async ({ populationPage }) => {
     test.setTimeout(100000)
     await test.step('navigate to population table', async () => {

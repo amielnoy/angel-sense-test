@@ -2,7 +2,7 @@
 import test from '../../Fixtures/testSetup';
 import { expect } from '@playwright/test';
 
-test.describe('Purchase API Tests', () => {
+test.describe('Purchase API Tests #PurchaseOrder', () => {
   test('should create a purchase order successfully', async ({ apiHelpers }) => {
     const orderData = {
       payment_method: 'stripe',

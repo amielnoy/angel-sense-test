@@ -1,7 +1,7 @@
 import test from '../../Fixtures/testSetup'
 import { expect } from '@playwright/test'
 
-test.describe('Population by Country - Search No Results', () => {
+test.describe('Population by Country - Search No Results #TableTests', () => {
   test('searching for a non-existent country returns no rows', async ({ populationPage }) => {
     test.setTimeout(100000)
     await test.step('navigate to population table', async () => {

@@ -2,7 +2,7 @@ import test from '../../Fixtures/testSetup'
 import { expect } from '@playwright/test'
 import { normalizeHeader } from './utils'
 
-test.describe('Population by Country - Verify Headers', () => {
+test.describe('Population by Country - Verify Headers #TableTests', () => {
   test('headers match canonical sequence', async ({ populationPage }) => {
     test.setTimeout(100000)
     await test.step('navigate to population table', async () => {

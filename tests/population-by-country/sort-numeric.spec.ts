@@ -2,7 +2,7 @@ import test from '../../Fixtures/testSetup'
 import { expect } from '@playwright/test'
 import { getHeaderIndex, getRowsLocator, parseNumber } from './utils'
 
-test.describe('Population by Country - Sort Numeric', () => {
+test.describe('Population by Country - Sort Numeric #TableTests', () => {
   test('population column sorts ascending and descending', async ({ populationPage }) => {
     await test.step('navigate to population table', async () => {
       await populationPage.goto()

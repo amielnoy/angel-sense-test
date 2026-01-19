@@ -1,7 +1,7 @@
 import test from '../../Fixtures/testSetup'
 import { expect } from '@playwright/test'
 
-test.describe('Population by Country - Search Partial', () => {
+test.describe('Population by Country - Search Partial #TableTests', () => {
   test('partial search is case-insensitive and matches substrings', async ({ populationPage }) => {
     test.setTimeout(100000)
     await test.step('navigate to population table', async () => {

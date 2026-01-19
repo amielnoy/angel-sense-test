@@ -1,7 +1,7 @@
 import test from '../../Fixtures/testSetup'
 import { expect } from '@playwright/test'
 
-test.describe('Population by Country - Sort Text', () => {
+test.describe('Population by Country - Sort Text #TableTests', () => {
   test('country column sorts alphabetically', async ({ populationPage }) => {
     test.setTimeout(100000)
     await test.step('navigate to population table', async () => {

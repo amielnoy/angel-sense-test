@@ -1,7 +1,7 @@
 import test from '../../Fixtures/testSetup'
 import { expect } from '@playwright/test'
 
-test.describe('Population by Country - Navigation & Ready', () => {
+test.describe('Population by Country - Navigation & Ready #TableTests', () => {
   test('page loads and table is ready', async ({ populationPage }) => {
     test.setTimeout(100000)
 

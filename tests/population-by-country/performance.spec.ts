@@ -2,7 +2,7 @@ import test from '../../Fixtures/testSetup'
 import { expect } from '@playwright/test'
 import PopulationByCountryPage from '../../Pages/worldometers-population-page'
 
-test.describe('Population by Country - Performance', () => {
+test.describe('Population by Country - Performance #TableTests', () => {
   test('table becomes ready within threshold and row count is reasonable', async ({ populationPage }) => {
 
     const elapsedMs = await test.step('navigate and measure ready time', async () => {

@@ -1,7 +1,7 @@
 import test from '../../Fixtures/testSetup'
 import { expect } from '@playwright/test'
 
-test.describe('Population by Country - Consent Handling', () => {
+test.describe('Population by Country - Consent Handling #TableTests', () => {
   test('consent overlay does not block interactions', async ({ populationPage }) => {
     test.setTimeout(100000)
 

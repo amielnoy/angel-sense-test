@@ -2,7 +2,7 @@ import test from '../../Fixtures/testSetup'
 import { expect } from '@playwright/test'
 import expectedDensities from '../data/worldometers-density-expected.json'
 
-test.describe('Worldometers Population by Country', () => {
+test.describe('Worldometers Population by Country #TableTests', () => {
   test('countries with population above 1,000,000,000 are India & China', async ({ populationPage }) => {
     test.setTimeout(100000)
     await test.step('navigate to population table', async () => {

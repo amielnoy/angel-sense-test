@@ -54,7 +54,7 @@ const dismissPopupIfPresent = async (page: Page) => {
   } catch {}
 }
 
-test.describe('Population by Country - Row Link', () => {
+test.describe('Population by Country - Row Link #TableTests', () => {
   test('clicking China navigates to China population page', async ({ populationPage }) => {
     test.setTimeout(100000)
     await test.step('navigate to population table', async () => {
