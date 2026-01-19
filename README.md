@@ -23,6 +23,11 @@
       npx playwright test tests --headed
 
 
+## Allure Report
+
+GitHub Pages (latest): https://amielnoy.github.io/angel-sense-test/
+
+
 
 
 
