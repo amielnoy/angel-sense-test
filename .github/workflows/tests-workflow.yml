@@ -11,6 +11,10 @@ jobs:
   test:
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
 
     permissions:
       contents: read
@@ -36,7 +40,7 @@ jobs:
       run: npm install -g allure
 
     - name: Run Playwright tests
-      run: npm playwright test tests/angel_sense_tests --headed=false
+      run: npm playwright test tests/angel_sense_tests --headed=false --shard=${{ matrix.shard }}/4
       env:
         CI: true
         BASE_URL: ${{ secrets.BASE_URL || 'https://www.angelsense.com' }}
@@ -44,48 +48,20 @@ jobs:
         WC_CONSUMER_SECRET: ${{ secrets.WC_CONSUMER_SECRET }}
       continue-on-error: true
 
-    - name: Generate Allure 3 Report
-      if: always()
-      run: |
-        allure generate allure-results --clean -o allure-report || echo "No test results to generate report"
-    - name: Check Allure report for Pages publish
-      if: always()
-      id: pages_check
-      run: |
-        if [ -d allure-report ] && [ "$(ls -A allure-report)" ]; then
-          echo "publish=true" >> "$GITHUB_OUTPUT"
-        else
-          echo "publish=false" >> "$GITHUB_OUTPUT"
-        fi
-
     - name: Upload Allure Results
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: allure-results
+        name: allure-results-shard-${{ matrix.shard }}
         path: allure-results/
         retention-days: 30
         if-no-files-found: ignore
-
-    - name: Upload Allure Report
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: allure-report
-        path: allure-report/
-        retention-days: 30
-        if-no-files-found: ignore
-    - name: Upload Pages artifact (Allure report)
-      if: always() && steps.pages_check.outputs.publish == 'true'
-      uses: actions/upload-pages-artifact@v3
-      with:
-        path: allure-report/
 
     - name: Upload Playwright Report
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: playwright-report
+        name: playwright-report-shard-${{ matrix.shard }}
         path: playwright-report/
         retention-days: 30
         if-no-files-found: ignore
@@ -94,13 +70,13 @@ jobs:
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: test-results
+        name: test-results-shard-${{ matrix.shard }}
         path: test-results/
         retention-days: 7
         if-no-files-found: ignore
 
     - name: Comment PR with Allure Report
-      if: github.event_name == 'pull_request' && always()
+      if: github.event_name == 'pull_request' && always() && matrix.shard == 1
       uses: actions/github-script@v7
       with:
         script: |
@@ -124,16 +100,51 @@ jobs:
                     'Or use: `allure serve <extracted-folder>`'
             });
           }
-    outputs:
-      publish_pages: ${{ steps.pages_check.outputs.publish }}
 
   deploy:
     needs: test
-    if: needs.test.outputs.publish_pages == 'true'
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
     runs-on: ubuntu-latest
     permissions:
       pages: write
       id-token: write
     steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 'lts/*'
+
+    - name: Install Allure 3 CLI
+      run: npm install -g allure || echo "Allure CLI installation failed, will use npx"
+
+    - name: Download Allure Results (all shards)
+      uses: actions/download-artifact@v4
+      with:
+        pattern: allure-results-shard-*
+        path: allure-results
+        merge-multiple: true
+
+    - name: Generate Allure 3 Report
+      run: |
+        if [ -d "allure-results" ] && [ "$(ls -A allure-results 2>/dev/null)" ]; then
+          allure generate allure-results --clean -o allure-report
+        else
+          echo "No test results found, creating empty report"
+          rm -rf allure-report || true
+          mkdir -p allure-report
+          echo '<!DOCTYPE html><html><head><title>No Test Results</title></head><body><h1>No test results available</h1></body></html>' > allure-report/index.html
+        fi
+
+    - name: Setup Pages
+      uses: actions/configure-pages@v4
+
+    - name: Upload Pages artifact (Allure report)
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: allure-report/
+
     - name: Deploy Allure report to GitHub Pages
       uses: actions/deploy-pages@v4
