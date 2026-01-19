@@ -19,6 +19,12 @@ jobs:
     permissions:
       contents: read
       pull-requests: write
+    env:
+      ALLURE_ENDPOINT: https://amielnoy.Testops.cloud
+      ALLURE_PROJECT_ID: 1
+      ALLURE_TOKEN: ${{ secrets.ALLURE_TESTOPS }}
+      ALLURE_LAUNCH_NAME: Playwright-${{ github.run_id }}
+      ALLURE_LAUNCH_TAGS: shard=${{ matrix.shard }}
 
     steps:
     - name: Checkout code
@@ -86,6 +92,19 @@ jobs:
         retention-days: 3
         if-no-files-found: ignore
         compression-level: 1
+
+    - name: Upload results to Allure TestOps
+      if: always() && env.ALLURE_TOKEN != ''
+      uses: allure-framework/setup-allurectl@v1
+      with:
+        allure-endpoint: ${{ env.ALLURE_ENDPOINT }}
+        allure-token: ${{ env.ALLURE_TOKEN }}
+        allure-project-id: ${{ env.ALLURE_PROJECT_ID }}
+
+    - name: Send Allure results (TestOps)
+      if: always() && env.ALLURE_TOKEN != ''
+      run: |
+        allurectl upload allure-results
 
     - name: Comment PR with Allure Report
       if: github.event_name == 'pull_request' && always() && matrix.shard == 1
