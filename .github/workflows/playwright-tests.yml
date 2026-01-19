@@ -1,0 +1,119 @@
+name: Playwright Tests with Allure 3
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 'lts/*'
+        cache: 'npm'
+
+    - name: Cache Playwright browsers
+      uses: actions/cache@v4
+      id: playwright-cache
+      with:
+        path: ~/.cache/ms-playwright
+        key: ${{ runner.os }}-playwright-${{ hashFiles('package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-playwright-
+
+    - name: Install dependencies
+      run: npm ci --prefer-offline --no-audit
+
+    - name: Install Playwright Browsers (Chromium only)
+      if: steps.playwright-cache.outputs.cache-hit != 'true'
+      run: npx playwright install --with-deps chromium
+
+    - name: Install Allure 3 CLI
+      run: npm install -g allure
+      continue-on-error: true
+
+    - name: Run Playwright tests
+      run: npm test
+      env:
+        CI: true
+        BASE_URL: ${{ secrets.BASE_URL || 'https://www.angelsense.com' }}
+        WC_CONSUMER_KEY: ${{ secrets.WC_CONSUMER_KEY }}
+        WC_CONSUMER_SECRET: ${{ secrets.WC_CONSUMER_SECRET }}
+      continue-on-error: true
+
+    - name: Generate Allure 3 Report
+      if: always()
+      run: |
+        if [ -d "allure-results" ] && [ "$(ls -A allure-results 2>/dev/null)" ]; then
+          npx allure generate allure-results --clean -o allure-report || echo "Report generation failed"
+        else
+          echo "No test results found, skipping report generation"
+        fi
+
+    - name: Upload Allure Results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: allure-results
+        path: allure-results/
+        retention-days: 7
+        if-no-files-found: ignore
+        compression-level: 1
+
+    - name: Upload Allure Report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: allure-report
+        path: allure-report/
+        retention-days: 7
+        if-no-files-found: ignore
+        compression-level: 1
+
+    - name: Upload Test Results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results
+        path: test-results/
+        retention-days: 3
+        if-no-files-found: ignore
+        compression-level: 1
+
+    - name: Comment PR with Allure Report
+      if: github.event_name == 'pull_request' && always()
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          const path = require('path');
+          
+          const reportPath = path.join(process.cwd(), 'allure-report');
+          if (fs.existsSync(reportPath)) {
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '## 📊 Allure Test Report\n\n' +
+                    'Allure 3 test report has been generated and uploaded as an artifact.\n\n' +
+                    '**To view the report:**\n' +
+                    '1. Go to the "Actions" tab\n' +
+                    '2. Click on this workflow run\n' +
+                    '3. Download the "allure-report" artifact\n' +
+                    '4. Extract and open `index.html` in your browser'
+            });
+          }

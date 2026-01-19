@@ -1,5 +1,6 @@
 import {defineConfig, devices} from '@playwright/test'
 import dotenv from 'dotenv'
+import * as os from 'node:os'
 
 /**
  * Read environment variables from file.
@@ -23,13 +24,50 @@ export default defineConfig({
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
   /* Retry on CI only */
-  retries: process.env.CI ? 2 : 0,
+  retries: process.env.CI ? 1 : 0, // Reduced from 2 to 1 for faster CI
   /* Opt out of parallel tests on CI. */
-  workers: process.env.CI ? 4 : 10,
+  workers: process.env.CI ? 6 : 10, // Increased from 4 to 6 for faster execution
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: process.env.CI
-    ? [['line'], ['allure-playwright'], ['@reportportal/agent-js-playwright']]
-    : [['line'], ['html',{open:'always'}], ['allure-playwright']],
+    ? [
+        ['line'],
+        [
+          'allure-playwright',
+          {
+            resultsDir: 'allure-results',
+            detail: true, // Keep detailed steps enabled
+            suiteTitle: true,
+            environmentInfo: {
+              os_platform: os.platform(),
+              os_release: os.release(),
+              os_version: os.version(),
+              node_version: process.version,
+              base_url: process.env.BASE_URL || 'not set',
+              ci: process.env.CI || 'false',
+            },
+          },
+        ],
+        ['@reportportal/agent-js-playwright'],
+      ]
+    : [
+        ['line'],
+        ['html', { open: 'always' }],
+        [
+          'allure-playwright',
+          {
+            resultsDir: 'allure-results',
+            detail: true,
+            suiteTitle: true,
+            environmentInfo: {
+              os_platform: os.platform(),
+              os_release: os.release(),
+              os_version: os.version(),
+              node_version: process.version,
+              base_url: process.env.BASE_URL || 'not set',
+            },
+          },
+        ],
+      ],
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
@@ -38,7 +76,7 @@ export default defineConfig({
     headless: !!process.env.CI, // Run tests in headed mode (show browser UI)
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
-    trace: 'on',
+    trace: process.env.CI ? 'on-first-retry' : 'on', // Only trace on retry in CI for performance
     screenshot: {
       mode: 'only-on-failure',
       fullPage: true,
