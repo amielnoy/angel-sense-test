@@ -31,6 +31,7 @@ export default defineConfig({
   reporter: process.env.CI
     ? [
         ['line'],
+        ['html', { open: 'never' }],
         [
           'allure-playwright',
           {
@@ -89,6 +90,7 @@ export default defineConfig({
     actionTimeout: 30_000, // Increase action timeout for slow networks
     navigationTimeout: 60_000, // Increase navigation timeout for external sites
   },
+  outputDir: 'test-results',
 
   /* Configure projects for major browsers */
   projects: [
