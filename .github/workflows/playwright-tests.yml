@@ -24,7 +24,7 @@ jobs:
       ALLURE_PROJECT_ID: 1
       ALLURE_TOKEN: ${{ secrets.ALLURE_TESTOPS }}
       ALLURE_LAUNCH_NAME: Playwright-${{ github.run_id }}
-      ALLURE_LAUNCH_TAGS: shard=${{ matrix.shard }}
+      ALLURE_LAUNCH_TAGS: PRODUCTION
 
     steps:
     - name: Checkout code
