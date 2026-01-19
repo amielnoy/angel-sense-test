@@ -4,7 +4,6 @@ import PopulationByCountryPage from '../../Pages/worldometers-population-page'
 
 test.describe('Population by Country - Performance', () => {
   test('table becomes ready within threshold and row count is reasonable', async ({ populationPage }) => {
-    test.setTimeout(100000)
 
     const elapsedMs = await test.step('navigate and measure ready time', async () => {
       const start = Date.now()
