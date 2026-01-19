@@ -63,6 +63,14 @@ jobs:
     - name: Install Allure 3 CLI
       run: npm install -g allure || echo "Allure CLI installation failed, will use npx"
 
+    - name: Upload results to Allure TestOps
+      if: always() && env.ALLURE_TOKEN != ''
+      uses: allure-framework/setup-allurectl@v1
+      with:
+        allure-endpoint: ${{ env.ALLURE_ENDPOINT }}
+        allure-token: ${{ env.ALLURE_TOKEN }}
+        allure-project-id: ${{ env.ALLURE_PROJECT_ID }}  
+
     - name: Run Playwright tests (Population by Country only)
       id: run-tests
       run: allurectl watch -- npx playwright test tests --shard=${{ matrix.shard }}/4
@@ -93,18 +101,12 @@ jobs:
         if-no-files-found: ignore
         compression-level: 1
 
-    - name: Upload results to Allure TestOps
-      if: always() && env.ALLURE_TOKEN != ''
-      uses: allure-framework/setup-allurectl@v1
-      with:
-        allure-endpoint: ${{ env.ALLURE_ENDPOINT }}
-        allure-token: ${{ env.ALLURE_TOKEN }}
-        allure-project-id: ${{ env.ALLURE_PROJECT_ID }}
+    
 
-    - name: Send Allure results (TestOps)
-      if: always() && env.ALLURE_TOKEN != ''
-      run: |
-        allurectl upload allure-results
+    # - name: Send Allure results (TestOps)
+    #   if: always() && env.ALLURE_TOKEN != ''
+    #   run: |
+    #     allurectl upload allure-results
 
     - name: Comment PR with Allure Report
       if: github.event_name == 'pull_request' && always() && matrix.shard == 1
