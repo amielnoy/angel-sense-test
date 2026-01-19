@@ -17,20 +17,19 @@ mkdir -p "$HISTORY_DIR"
 # Remove old report
 rm -rf "$REPORT_DIR" || true
 
-# Generate new report (Allure 3 automatically creates history folder)
+# If history exists from previous runs, inject it into results before generation
+if [ -d "$HISTORY_DIR" ] && [ "$(ls -A $HISTORY_DIR 2>/dev/null)" ]; then
+  echo "Merging history from previous runs into results..."
+  mkdir -p "$RESULTS_DIR/history"
+  cp -r "$HISTORY_DIR"/* "$RESULTS_DIR/history/" 2>/dev/null || true
+fi
+
+# Generate new report
 echo "Generating Allure report..."
 npx allure generate "$RESULTS_DIR" -o "$REPORT_DIR" || {
   echo "Report generation failed"
   exit 1
 }
-
-# If history exists from previous runs, merge it with new history
-if [ -d "$HISTORY_DIR" ] && [ "$(ls -A $HISTORY_DIR 2>/dev/null)" ]; then
-  echo "Merging history from previous runs..."
-  mkdir -p "$REPORT_DIR/history"
-  # Copy old history files to new report
-  cp -r "$HISTORY_DIR"/* "$REPORT_DIR/history/" 2>/dev/null || true
-fi
 
 # Save the updated history for next run
 if [ -d "$REPORT_DIR/history" ] && [ "$(ls -A $REPORT_DIR/history 2>/dev/null)" ]; then
