@@ -28,6 +28,13 @@ fi
 echo "Generating Allure report..."
 npx allure generate "$RESULTS_DIR" -o "$REPORT_DIR" || {
   echo "Report generation failed"
+  if [ -d "$HOME/.allure/logs" ]; then
+    latest_log=$(ls -t "$HOME/.allure/logs"/*.log 2>/dev/null | head -n 1)
+    if [ -n "$latest_log" ]; then
+      echo "Allure log: $latest_log"
+      tail -n 200 "$latest_log" || true
+    fi
+  fi
   exit 1
 }
 
