@@ -65,7 +65,7 @@ jobs:
 
     - name: Run Playwright tests (Population by Country only)
       id: run-tests
-      run: npx playwright test tests --shard=${{ matrix.shard }}/4
+      run: allurectl watch -- npx playwright test tests --shard=${{ matrix.shard }}/4
       env:
         CI: true
         BASE_URL: ${{ secrets.BASE_URL || 'https://www.angelsense.com' }}
