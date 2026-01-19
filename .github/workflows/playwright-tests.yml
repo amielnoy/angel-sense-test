@@ -20,7 +20,7 @@ jobs:
       contents: read
       pull-requests: write
     env:
-      ALLURE_ENDPOINT: https://amielnoy.Testops.cloud
+      ALLURE_ENDPOINT: https://amielnoy.testops.cloud
       ALLURE_PROJECT_ID: 1
       ALLURE_TOKEN: ${{ secrets.ALLURE_TESTOPS }}
       ALLURE_LAUNCH_NAME: Playwright-${{ github.run_id }}
@@ -79,6 +79,7 @@ jobs:
         BASE_URL: ${{ secrets.BASE_URL || 'https://www.angelsense.com' }}
         WC_CONSUMER_KEY: ${{ secrets.WC_CONSUMER_KEY || '' }}
         WC_CONSUMER_SECRET: ${{ secrets.WC_CONSUMER_SECRET || '' }}
+        ALLURE_RESULTS: allure-results
       continue-on-error: true
 
     - name: Upload Allure Results
