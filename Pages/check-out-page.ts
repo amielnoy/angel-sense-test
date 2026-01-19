@@ -119,12 +119,16 @@ export class CheckOutPage {
         await expect(scope.locator('li.wc_payment_method')).toHaveCount(4);
 
         // Normalize aliases -> actual input value
-        const map: Record<string, 'stripe' | 'paypal' | 'stripe_googlepay'> = {
+        const map: Record<string, 'stripe' | 'paypal' | 'stripe_googlepay' | 'stripe_applepay'> = {
             card: 'stripe',
             paypal: 'paypal',
             google: 'stripe_googlepay',
+            apple: 'stripe_applepay',
         };
         const value = map[method];
+        if (!value) {
+            throw new Error(`Unsupported payment method: ${method}`);
+        }
 
         // 1) Try direct check by input value (fast)
         const input = scope.locator(`input[name="payment_method"][value="${value}"]`).first();
@@ -157,6 +161,7 @@ export class CheckOutPage {
                 stripe: /credit\s*card/i,
                 paypal: /paypal/i,
                 stripe_googlepay: /google\s*pay/i,
+                stripe_applepay: /apple\s*pay/i,
             };
             const radio = scope.getByRole('radio', { name: nameMap[value], includeHidden: true }).first();
             await expect(radio).toHaveCount(1, { timeout: 30_000 });
