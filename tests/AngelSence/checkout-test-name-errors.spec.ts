@@ -1,4 +1,4 @@
-import test from '../Fixtures/testSetup'
+import test from '../../Fixtures/testSetup'
 import {expect} from "@playwright/test";
 test.describe('checkout tests', () => {
     // Keep it self-contained: set a baseURL for this describe block

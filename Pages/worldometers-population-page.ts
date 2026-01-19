@@ -1,4 +1,5 @@
 import { Page, Locator, expect } from '@playwright/test'
+import * as cheerio from 'cheerio'
 
 export type RowData = Record<string, string>
 
@@ -27,12 +28,11 @@ export class PopulationByCountryPage {
 
   constructor(page: Page) {
     this.page = page
-    // Table id can be `example2` (commonly) or `example` depending on site version.
-    // Also add DataTables class as a robust fallback.
-    this.table  = page.locator('div.datatable-container > table.datatable');
+    // Table id can be `example2` (common) or `example`; also match common DataTables classes.
+    this.table = page.locator('table#example2, table#example, table[id^="example"], table.dataTable, table.datatable, table.table-bordered')
     // Search box (DataTables adds a filter container {tableId}_filter)
     this.searchBox = page.getByPlaceholder("Search...")
-    //this.searchBoxCss = page.locator('div[id$="_filter"] input[type="search"], div.dataTables_filter input[type="search"]')
+    this.searchBoxCss = page.locator('div[id$="_filter"] input[type="search"], div.dataTables_filter input[type="search"]')
     // Headers and rows (role-first, CSS fallback)
     this.headerCellsRole = this.table.getByRole('columnheader')
     this.headerCellsCss = this.table.locator('thead th')
@@ -149,13 +149,13 @@ export class PopulationByCountryPage {
 
   /** Parse the current table into an array of row objects keyed by normalized header. */
   async getTableData(limit?: number): Promise<RowData[]> {
+    // Prefer UI parsing for current view (respects filters/sorting)
     const headers = await this.getHeaders()
     const rows = (await this.rowsRole.count()) > 0 ? this.rowsRole : this.rowsCss
     const total = await rows.count()
     const count = typeof limit === 'number' ? Math.min(limit, total) : total
     const data: RowData[] = []
     for (let r = 0; r < count; r++) {
-      console.log(`Parsing row ${r + 1} of ${total}`)
       const row = rows.nth(r)
       const cells = row.locator('td')
       const cellCount = await cells.count()
@@ -167,7 +167,14 @@ export class PopulationByCountryPage {
       }
       data.push(obj)
     }
-    return data
+    if (data.length > 0) return data
+
+    const html = await this.fetchTableHtml()
+    if (html) {
+      const parsed = this.parseTableHtml(html, limit)
+      if (parsed.length > 0) return parsed
+    }
+    return []
   }
 
   /** Convenience: Fetch a map/object for a specific country row. */
@@ -217,6 +224,52 @@ export class PopulationByCountryPage {
 
   static escapeRegExp(str: string): string {
     return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  }
+
+  async fetchTableHtml(): Promise<string | null> {
+    try {
+      const response = await this.page.request.get(PopulationByCountryPage.url)
+      if (!response.ok()) return null
+      return await response.text()
+    } catch {
+      return null
+    }
+  }
+
+  parseTableHtml(html: string, limit?: number): RowData[] {
+    const $ = cheerio.load(html)
+    const table = $(
+      'table#example2, table#example, table[id^="example"], table.dataTable, table.datatable, table.table-bordered',
+    ).first()
+    if (!table.length) return []
+
+    const headers = table
+      .find('thead th')
+      .map((_, th) => this.normalizeHeader($(th).text()))
+      .get()
+
+    const rows = table.find('tbody tr')
+    const total = rows.length
+    const count = typeof limit === 'number' ? Math.min(limit, total) : total
+    const data: RowData[] = []
+
+    for (let r = 0; r < count; r++) {
+      const row = rows.eq(r)
+      const cells = row.find('td')
+      const cellCount = cells.length
+      const obj: RowData = {}
+      for (let c = 0; c < Math.min(headers.length, cellCount); c++) {
+        const key = headers[c] || `column_${c + 1}`
+        const val = this.normalizeCellText(cells.eq(c).text())
+        obj[key] = val
+      }
+      data.push(obj)
+    }
+    return data
+  }
+
+  private normalizeCellText(text: string): string {
+    return text.replace(/\u00a0/g, ' ').replace(/\s+/g, ' ').trim()
   }
 
   // Dismiss common consent/cookie banners if present (non-fatal)

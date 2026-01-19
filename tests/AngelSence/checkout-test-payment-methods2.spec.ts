@@ -1,4 +1,4 @@
-import test from '../Fixtures/testSetup'
+import test from '../../Fixtures/testSetup'
 import { expect } from "@playwright/test";
 
 test.describe('Checkout Payment Tests', () => {
@@ -50,7 +50,7 @@ test.describe('Checkout Payment Tests', () => {
             invalidCard.cvv
         );
         await checkoutPage.clickAgreeToTerms();
-        
+
         // Submit and verify error
         await checkoutPage.clickPlaceOrder();
         //const errorMessage = await checkoutPage.getErrorMessage();

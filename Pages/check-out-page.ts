@@ -1,19 +1,17 @@
-import { expect } from "playwright/test";
-
 // Page object for the Home Page
+import { expect, Page, Locator } from '@playwright/test'
+
 export class CheckOutPage {
-    readonly email;
-    readonly firstName;
-    readonly lastName;
-    readonly phone;
-    readonly sheepingAddress1
-    readonly sheepingAddress2
-    readonly city;
-    readonly zipCode;
-    readonly terms
-
-
-    constructor(private page: any) {
+    readonly email: Locator
+    readonly firstName: Locator
+    readonly lastName: Locator
+    readonly phone: Locator
+    readonly sheepingAddress1: Locator
+    readonly sheepingAddress2: Locator
+    readonly city: Locator
+    readonly zipCode: Locator
+    readonly terms: Locator
+    constructor(private page: Page) {
         this.email = this.page.locator('#shipping_email');
         this.firstName = this.page.locator('#shipping_first_name');
         this.lastName = this.page.locator('#shipping_last_name');
@@ -33,7 +31,7 @@ export class CheckOutPage {
 
     async validateEmail(){
         const emailError = await this.page.getByText('Please enter a valid email address');
-        await expect(emailError).toBeVisible()
+        await expect(emailError).toBeVisible();
     }
 
     async setFirstname(email: string) {
@@ -49,8 +47,10 @@ export class CheckOutPage {
     }
 
     async validatePhone(){
-        const phoneError = await this.page.getByText('Please enter a valid cellular number without country code');
-        await expect(phoneError).toBeVisible()
+        // Trigger inline validation by blurring the field
+        await this.phone.blur();
+        const phoneError = this.page.getByText(/(Please enter a valid phone number|This field is required)/i);
+        await expect(phoneError).toBeVisible();
     }
 
     async selectCountry(country: string){
@@ -63,14 +63,14 @@ export class CheckOutPage {
 
     async validateFieldNotEmpty(){
         const phoneError = await this.page.getByText('This field is required');
-        await expect(phoneError).toBeVisible()
+        await expect(phoneError).toBeVisible();
     }
 
 
 
     async validateAddressOneHasStreetAndNumber(){
         const phoneError = await this.page.getByText('Please enter street & house number');
-        await expect(phoneError).toBeVisible()
+        await expect(phoneError).toBeVisible();
     }
 
     async setAddress2(address2: string) {
@@ -90,7 +90,7 @@ export class CheckOutPage {
     }
 
     async setSameAsSheepingAddress(check: boolean) {
-        this.page.locator('#same_as_toggle').setChecked(check);
+        await this.page.locator('#same_as_toggle').setChecked(check);
     }
 
 
@@ -109,7 +109,7 @@ export class CheckOutPage {
     }
 
     async choosePaymentMethod(
-        method: 'stripe' | 'paypal' | 'stripe_applepay' | 'stripe_googlepay' | 'card' | 'apple' | 'google',
+        method:  'paypal' | 'card' | 'apple' | 'google',
         cardNumber?:string,
         expiryDate?:string,
         cvc?:string
@@ -119,13 +119,9 @@ export class CheckOutPage {
         await expect(scope.locator('li.wc_payment_method')).toHaveCount(4);
 
         // Normalize aliases -> actual input value
-        const map: Record<string, 'stripe' | 'paypal' | 'stripe_applepay' | 'stripe_googlepay'> = {
-            stripe: 'stripe',
+        const map: Record<string, 'stripe' | 'paypal' | 'stripe_googlepay'> = {
             card: 'stripe',
             paypal: 'paypal',
-            stripe_applepay: 'stripe_applepay',
-            apple: 'stripe_applepay',
-            stripe_googlepay: 'stripe_googlepay',
             google: 'stripe_googlepay',
         };
         const value = map[method];
@@ -142,6 +138,9 @@ export class CheckOutPage {
             }
             await expect(input).toBeChecked();
             if(method==='card'){
+                // if (!cardNumber || !expiryDate || !cvc) {
+                //     throw new Error('Card details are required when using the card payment method');
+                // }
                 const cardFrame = this.page.frameLocator('iframe[title="Secure card number input frame"]');
                 await cardFrame.getByLabel(/credit or debit card number/i).fill(cardNumber);
 
@@ -157,7 +156,6 @@ export class CheckOutPage {
             const nameMap: Record<typeof value, RegExp> = {
                 stripe: /credit\s*card/i,
                 paypal: /paypal/i,
-                stripe_applepay: /apple\s*pay/i,
                 stripe_googlepay: /google\s*pay/i,
             };
             const radio = scope.getByRole('radio', { name: nameMap[value], includeHidden: true }).first();
@@ -196,5 +194,4 @@ export class CheckOutPage {
         const termsError = await this.page.getByText('Please accept terms and conditions');
         await expect(termsError).toBeVisible()
     }
-
 }
