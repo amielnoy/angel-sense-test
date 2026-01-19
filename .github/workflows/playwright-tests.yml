@@ -59,7 +59,8 @@ jobs:
       if: always()
       run: |
         if [ -d "allure-results" ] && [ "$(ls -A allure-results 2>/dev/null)" ]; then
-          npx allure generate allure-results --clean -o allure-report || echo "Report generation failed"
+          rm -rf allure-report || true
+          npx allure generate allure-results -o allure-report || echo "Report generation failed"
         else
           echo "No test results found, skipping report generation"
         fi
@@ -155,9 +156,11 @@ jobs:
     - name: Generate Allure 3 Report
       run: |
         if [ -d "allure-results" ] && [ "$(ls -A allure-results 2>/dev/null)" ]; then
-          npx allure generate allure-results --clean -o allure-report
+          rm -rf allure-report || true
+          npx allure generate allure-results -o allure-report
         else
           echo "No test results found, creating empty report"
+          rm -rf allure-report || true
           mkdir -p allure-report
           echo '<!DOCTYPE html><html><head><title>No Test Results</title></head><body><h1>No test results available</h1></body></html>' > allure-report/index.html
         fi
