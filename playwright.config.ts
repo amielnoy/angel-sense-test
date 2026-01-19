@@ -47,7 +47,8 @@ export default defineConfig({
             },
           },
         ],
-        ['@reportportal/agent-js-playwright'],
+        // ReportPortal removed - add back when properly configured with RP_API_KEY, RP_ENDPOINT, RP_PROJECT env vars
+        // ['@reportportal/agent-js-playwright'],
       ]
     : [
         ['line'],

@@ -39,20 +39,19 @@ jobs:
       run: npm ci --prefer-offline --no-audit
 
     - name: Install Playwright Browsers (Chromium only)
-      if: steps.playwright-cache.outputs.cache-hit != 'true'
       run: npx playwright install --with-deps chromium
 
     - name: Install Allure 3 CLI
-      run: npm install -g allure
-      continue-on-error: true
+      run: npm install -g allure || echo "Allure CLI installation failed, will use npx"
 
     - name: Run Playwright tests (Population by Country only)
+      id: run-tests
       run: npx playwright test tests/population-by-country/
       env:
         CI: true
         BASE_URL: ${{ secrets.BASE_URL || 'https://www.angelsense.com' }}
-        WC_CONSUMER_KEY: ${{ secrets.WC_CONSUMER_KEY }}
-        WC_CONSUMER_SECRET: ${{ secrets.WC_CONSUMER_SECRET }}
+        WC_CONSUMER_KEY: ${{ secrets.WC_CONSUMER_KEY || '' }}
+        WC_CONSUMER_SECRET: ${{ secrets.WC_CONSUMER_SECRET || '' }}
       continue-on-error: true
 
     - name: Generate Allure 3 Report
@@ -144,8 +143,7 @@ jobs:
         node-version: 'lts/*'
 
     - name: Install Allure 3 CLI
-      run: npm install -g allure
-      continue-on-error: true
+      run: npm install -g allure || echo "Allure CLI installation failed, will use npx"
 
     - name: Download Allure Results
       uses: actions/download-artifact@v4
