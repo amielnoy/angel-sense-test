@@ -2,8 +2,11 @@
     "compilerOptions": {
         "target": "ESNext",
         "module": "commonjs",
-        "moduleResolution": "Node",
+        "moduleResolution": "node",
         "sourceMap": true,
         "outDir": "../tests-out",
+        "resolveJsonModule": true,
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true
     }
 }

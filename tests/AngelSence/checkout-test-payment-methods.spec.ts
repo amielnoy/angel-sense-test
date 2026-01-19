@@ -25,7 +25,6 @@ test.describe('checkout tests', () => {
         await checkoutPage.clickAgreeToTerms();
         await checkoutPage.clickPlaceOrder()
         console.log('debug')
-        //expect().toBeGreaterThan(8.0)
     })
 
     test('test add to cart credit card account not valid', async ({
