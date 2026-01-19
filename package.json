@@ -6,7 +6,10 @@
   "scripts": {
     "test": "playwright test",
     "test:headed": "playwright test --headed",
-    "report": "allure serve allure-results",
+    "allure:generate": "bash scripts/allure-with-history.sh",
+    "allure:serve": "allure serve allure-results",
+    "allure:open": "allure open allure-report",
+    "report": "npm run allure:generate && allure open allure-report",
     "json-server": "node_modules/.bin/json-server --watch json.db --port 3000"
   },
   "keywords": [],

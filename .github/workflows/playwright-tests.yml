@@ -35,6 +35,15 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-playwright-
 
+    - name: Cache Allure History
+      uses: actions/cache@v4
+      id: allure-history-cache
+      with:
+        path: allure-history
+        key: ${{ runner.os }}-allure-history-${{ github.ref }}
+        restore-keys: |
+          ${{ runner.os }}-allure-history-
+
     - name: Install dependencies
       run: npm ci --prefer-offline --no-audit
 
@@ -54,15 +63,9 @@ jobs:
         WC_CONSUMER_SECRET: ${{ secrets.WC_CONSUMER_SECRET || '' }}
       continue-on-error: true
 
-    - name: Generate Allure 3 Report
+    - name: Generate Allure 3 Report with History
       if: always()
-      run: |
-        if [ -d "allure-results" ] && [ "$(ls -A allure-results 2>/dev/null)" ]; then
-          rm -rf allure-report || true
-          npx allure generate allure-results -o allure-report || echo "Report generation failed"
-        else
-          echo "No test results found, skipping report generation"
-        fi
+      run: bash scripts/allure-with-history.sh || echo "Report generation failed"
 
     - name: Upload Allure Results
       if: always()
@@ -81,6 +84,16 @@ jobs:
         name: allure-report
         path: allure-report/
         retention-days: 7
+        if-no-files-found: ignore
+        compression-level: 1
+
+    - name: Upload Allure History
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: allure-history
+        path: allure-history/
+        retention-days: 30
         if-no-files-found: ignore
         compression-level: 1
 
@@ -151,11 +164,17 @@ jobs:
         name: allure-results
         path: allure-results/
 
-    - name: Generate Allure 3 Report
+    - name: Download Allure History
+      uses: actions/download-artifact@v4
+      with:
+        name: allure-history
+        path: allure-history/
+        if-no-files-found: ignore
+
+    - name: Generate Allure 3 Report with History
       run: |
         if [ -d "allure-results" ] && [ "$(ls -A allure-results 2>/dev/null)" ]; then
-          rm -rf allure-report || true
-          npx allure generate allure-results -o allure-report
+          bash scripts/allure-with-history.sh
         else
           echo "No test results found, creating empty report"
           rm -rf allure-report || true
