@@ -148,12 +148,13 @@ jobs:
         path: allure-results/
         merge-multiple: true
 
-    - name: Download Allure History
-      uses: actions/download-artifact@v4
-      continue-on-error: true
+    - name: Restore Allure History cache
+      uses: actions/cache@v4
       with:
-        name: allure-history
-        path: allure-history/
+        path: allure-history
+        key: ${{ runner.os }}-allure-history-${{ github.ref }}-${{ github.run_id }}
+        restore-keys: |
+          ${{ runner.os }}-allure-history-
 
     - name: Ensure Allure History directory
       run: mkdir -p allure-history
@@ -176,15 +177,6 @@ jobs:
       uses: actions/upload-pages-artifact@v3
       with:
         path: './allure-report'
-
-    - name: Upload Allure History
-      uses: actions/upload-artifact@v4
-      with:
-        name: allure-history
-        path: allure-history/
-        retention-days: 30
-        if-no-files-found: ignore
-        compression-level: 1
 
     - name: Deploy to GitHub Pages
       id: deployment
