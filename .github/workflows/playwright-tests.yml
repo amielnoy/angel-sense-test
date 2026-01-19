@@ -147,10 +147,13 @@ jobs:
 
     - name: Download Allure History
       uses: actions/download-artifact@v4
+      continue-on-error: true
       with:
         name: allure-history
         path: allure-history/
-        if-no-files-found: ignore
+
+    - name: Ensure Allure History directory
+      run: mkdir -p allure-history
 
     - name: Generate Allure 3 Report with History
       run: |
