@@ -8,13 +8,21 @@ test.describe('Population by Country - Navigation & Ready #TableTests', () => {
     await test.step('navigate to population table', async () => {
       await populationPage.goto()
     })
-    await test.step('verify page title and headers', async () => {
+    await test.step('assert page title', async () => {
       await expect(populationPage.page).toHaveTitle(/Population by Country.*Worldometer/i)
-      const headers = await populationPage.getHeaders()
+    })
+    let headers: string[] = []
+    await test.step('read table headers', async () => {
+      headers = await populationPage.getHeaders()
+    })
+    await test.step('assert headers are present', async () => {
       expect(headers.length).toBeGreaterThan(0)
     })
-    await test.step('verify row count is non-zero', async () => {
-      const rowCount = await populationPage.getRowCount()
+    let rowCount = 0
+    await test.step('read row count', async () => {
+      rowCount = await populationPage.getRowCount()
+    })
+    await test.step('assert row count is non-zero', async () => {
       expect(rowCount).toBeGreaterThan(0)
     })
   })

@@ -5,22 +5,7 @@ import { normalizeNumberText, parseNumber } from './utils'
 test.describe('Population by Country - Data Extraction #TableTests', () => {
   test('UI data matches HTML fallback for sampled rows', async ({ populationPage }) => {
     test.setTimeout(100000)
-    await test.step('navigate to population table', async () => {
-      await populationPage.goto()
-    })
-
-    const { uiRows, htmlRows } = await test.step('capture UI and HTML table data', async () => {
-      const ui = await populationPage.getTableData(50)
-      const html = await populationPage.fetchTableHtml()
-      expect(html).not.toBeNull()
-      const parsed = html ? populationPage.parseTableHtml(html, 50) : []
-      return { uiRows: ui, htmlRows: parsed }
-    })
-
-    await test.step('compare sampled rows between UI and HTML', async () => {
-      const sampleSize = Math.min(10, uiRows.length, htmlRows.length)
-      expect(sampleSize).toBeGreaterThan(0)
-
+    const countMatches = (uiRows: Record<string, string>[], htmlRows: Record<string, string>[], sampleSize: number) => {
       const normalizeCountry = (value: string | undefined) =>
         normalizeNumberText((value || '').replace(/\s+/g, ' ')).toLowerCase()
 
@@ -39,7 +24,41 @@ test.describe('Population by Country - Data Extraction #TableTests', () => {
           matches++
         }
       }
+      return matches
+    }
+    await test.step('navigate to population table', async () => {
+      await populationPage.goto()
+    })
 
+    let uiRows: Awaited<ReturnType<typeof populationPage.getTableData>> = []
+    await test.step('capture UI table data', async () => {
+      uiRows = await populationPage.getTableData(50)
+    })
+    let html: string | null = null
+    await test.step('fetch HTML table', async () => {
+      html = await populationPage.fetchTableHtml()
+    })
+    await test.step('assert HTML table exists', async () => {
+      expect(html).not.toBeNull()
+    })
+    let htmlRows: Awaited<ReturnType<typeof populationPage.parseTableHtml>> = []
+    await test.step('parse HTML table data', async () => {
+      htmlRows = html ? populationPage.parseTableHtml(html, 50) : []
+    })
+
+    let sampleSize = 0
+    await test.step('compute sample size', async () => {
+      sampleSize = Math.min(10, uiRows.length, htmlRows.length)
+    })
+    await test.step('assert sample size is valid', async () => {
+      expect(sampleSize).toBeGreaterThan(0)
+    })
+
+    let matches = 0
+    await test.step('compare sampled rows', async () => {
+      matches = countMatches(uiRows, htmlRows, sampleSize)
+    })
+    await test.step('assert match ratio', async () => {
       expect(matches / sampleSize).toBeGreaterThanOrEqual(0.95)
     })
   })

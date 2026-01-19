@@ -32,20 +32,40 @@ test.describe('Checkout (add-to-cart=1450714) UI tests', () => {
 
   test('shows error when submitting invalid credit card', async ({ page }) => {
     const checkoutPage = new CheckOutPage(page)
-    await test.step('fill customer details', async () => {
+    await test.step('fill email', async () => {
       await checkoutPage.setEmail(testCustomer.email)
+    })
+    await test.step('fill first name', async () => {
       await checkoutPage.setFirstname(testCustomer.firstName)
+    })
+    await test.step('fill last name', async () => {
       await checkoutPage.setLastName(testCustomer.lastName)
+    })
+    await test.step('fill phone', async () => {
       await checkoutPage.setPhone(testCustomer.phone)
+    })
+    await test.step('select country', async () => {
       await checkoutPage.selectCountry(testCustomer.country)
+    })
+    await test.step('fill address line 1', async () => {
       await checkoutPage.setAddress1(testCustomer.address1)
+    })
+    await test.step('fill address line 2', async () => {
       await checkoutPage.setAddress2(testCustomer.address2)
+    })
+    await test.step('select province', async () => {
       await checkoutPage.selectProvince(testCustomer.province)
+    })
+    await test.step('fill city', async () => {
       await checkoutPage.setCity(testCustomer.city)
+    })
+    await test.step('fill postal code', async () => {
       await checkoutPage.setPostalCode(testCustomer.postalCode)
     })
-    await test.step('select shipping and payment', async () => {
+    await test.step('select shipping method', async () => {
       await checkoutPage.chooseShippingByKey('express')
+    })
+    await test.step('select payment method', async () => {
       // @ts-ignore
       await checkoutPage.choosePaymentMethod(
         invalidCard.type,
@@ -53,6 +73,8 @@ test.describe('Checkout (add-to-cart=1450714) UI tests', () => {
         invalidCard.expiry,
         invalidCard.cvv
       )
+    })
+    await test.step('agree to terms', async () => {
       await checkoutPage.clickAgreeToTerms()
     })
     await test.step('submit and validate error', async () => {

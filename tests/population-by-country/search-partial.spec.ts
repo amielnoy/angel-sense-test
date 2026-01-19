@@ -10,12 +10,22 @@ test.describe('Population by Country - Search Partial #TableTests', () => {
     await test.step('search for partial match', async () => {
       await populationPage.setSearch('uni')
     })
-    await test.step('verify results contain United*', async () => {
-      const countries = await populationPage.getTopCountries(20)
+    let countries: string[] = []
+    await test.step('collect top countries', async () => {
+      countries = await populationPage.getTopCountries(20)
+    })
+    await test.step('assert results are returned', async () => {
       expect(countries.length).toBeGreaterThan(0)
-
-      const lower = countries.map(c => c.toLowerCase())
-      const hasUnited = lower.some(c => c.includes('united'))
+    })
+    let lower: string[] = []
+    await test.step('normalize country names', async () => {
+      lower = countries.map(c => c.toLowerCase())
+    })
+    let hasUnited = false
+    await test.step('check for "united" match', async () => {
+      hasUnited = lower.some(c => c.includes('united'))
+    })
+    await test.step('assert "united" match', async () => {
       expect(hasUnited).toBe(true)
     })
   })

@@ -10,14 +10,22 @@ test.describe('Population by Country - Search No Results #TableTests', () => {
     await test.step('search for a non-existent country', async () => {
       await populationPage.setSearch('not-a-country')
     })
-    await test.step('verify no results are shown', async () => {
-      const emptyCell = populationPage.page.locator('td.dataTables_empty')
-      if ((await emptyCell.count()) > 0) {
+    const emptyCell = populationPage.page.locator('td.dataTables_empty')
+    let hasEmptyCell = false
+    await test.step('check for empty results cell', async () => {
+      hasEmptyCell = (await emptyCell.count()) > 0
+    })
+    if (hasEmptyCell) {
+      await test.step('assert empty results cell is visible', async () => {
         await expect(emptyCell).toBeVisible()
-        return
-      }
-
-      const rowCount = await populationPage.getRowCount()
+      })
+      return
+    }
+    let rowCount = 0
+    await test.step('read row count', async () => {
+      rowCount = await populationPage.getRowCount()
+    })
+    await test.step('assert row count for no results', async () => {
       expect(rowCount).toBe(1)
     })
   })

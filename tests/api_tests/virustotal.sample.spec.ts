@@ -22,68 +22,102 @@ async function waitForAnalysis(vt: VirusTotalClient, analysisId: string, { timeo
 
 // 1) Submit a URL for analysis and wait for completion
 test('analyze URL (happy path)', async ({ virustotal }) => {
-  const submit = await test.step('submit URL for analysis', async () => {
-    const res = await virustotal.analyzeUrl('https://example.com')
-    expect(res.status).toBe(200)
-    return res
+  let submit: Awaited<ReturnType<typeof virustotal.analyzeUrl>>
+  await test.step('submit URL for analysis', async () => {
+    submit = await virustotal.analyzeUrl('https://example.com')
   })
-  const analysisId = submit.data?.data?.id as string
-  expect(analysisId).toBeTruthy()
-
+  await test.step('assert submit status', async () => {
+    expect(submit.status).toBe(200)
+  })
+  let analysisId = ''
+  await test.step('extract analysis id', async () => {
+    analysisId = submit.data?.data?.id as string
+  })
+  await test.step('assert analysis id', async () => {
+    expect(analysisId).toBeTruthy()
+  })
+  let analysis: any
   await test.step('wait for analysis completion', async () => {
-    const analysis = await waitForAnalysis(virustotal, analysisId)
+    analysis = await waitForAnalysis(virustotal, analysisId)
+  })
+  await test.step('assert analysis status', async () => {
     expect(analysis.data?.attributes?.status).toBe('completed')
   })
 })
 
 test.skip('Idetify malicious url', async ({ virustotal }) => {
   const url_to_scan = 'https://secure.eicar.org/eicar.com.txt';
-  const submit = await test.step('submit malicious URL for analysis', async () => {
-    const res = await virustotal.analyzeUrl(url_to_scan)
-    expect(res.status).toBe(200)
-    return res
+  let submit: Awaited<ReturnType<typeof virustotal.analyzeUrl>>
+  await test.step('submit malicious URL for analysis', async () => {
+    submit = await virustotal.analyzeUrl(url_to_scan)
   })
-  const analysisId = submit.data?.data?.id as string
-  expect(analysisId).toBeTruthy()
-
-  await test.step('wait for analysis and assert results', async () => {
-    const analysis = await waitForAnalysis(virustotal, analysisId)
+  await test.step('assert submit status', async () => {
+    expect(submit.status).toBe(200)
+  })
+  let analysisId = ''
+  await test.step('extract analysis id', async () => {
+    analysisId = submit.data?.data?.id as string
+  })
+  await test.step('assert analysis id', async () => {
+    expect(analysisId).toBeTruthy()
+  })
+  let analysis: any
+  await test.step('wait for analysis completion', async () => {
+    analysis = await waitForAnalysis(virustotal, analysisId)
+  })
+  await test.step('assert analysis status', async () => {
     expect(analysis.data?.attributes?.status).toBe('completed')
+  })
+  await test.step('assert malicious count', async () => {
     expect(analysis.data?.attributes?.stats['malicious']).toBeGreaterThan(0);
+  })
+  await test.step('assert suspicious count', async () => {
     expect(analysis.data?.attributes?.stats['suspicious']).toBeGreaterThanOrEqual(1);
   })
 })
 
 // 2) Convert a raw URL to VT URL ID and fetch its report
 test('get URL report by id', async ({ virustotal }) => {
-  const res = await test.step('convert URL to id and fetch report', async () => {
-    const urlId = VirusTotalClient.urlToId('https://example.com')
-    return virustotal.getUrl(urlId)
+  let urlId = ''
+  await test.step('convert URL to id', async () => {
+    urlId = VirusTotalClient.urlToId('https://example.com')
   })
-  await test.step('assert URL report response', async () => {
+  let res: Awaited<ReturnType<typeof virustotal.getUrl>>
+  await test.step('fetch URL report', async () => {
+    res = await virustotal.getUrl(urlId)
+  })
+  await test.step('assert URL report status', async () => {
     expect(res.status).toBe(200)
+  })
+  await test.step('assert URL report type', async () => {
     expect(res.data?.data?.type).toBe('url')
   })
 })
 
 // 3) Get domain information
 test('get domain info', async ({ virustotal }) => {
-  const res = await test.step('fetch domain info', async () => {
-    return virustotal.getDomain('example.com')
+  let res: Awaited<ReturnType<typeof virustotal.getDomain>>
+  await test.step('fetch domain info', async () => {
+    res = await virustotal.getDomain('example.com')
   })
-  await test.step('assert domain response', async () => {
+  await test.step('assert domain status', async () => {
     expect(res.status).toBe(200)
+  })
+  await test.step('assert domain type', async () => {
     expect(res.data?.data?.type).toBe('domain')
   })
 })
 
 // 4) Get IP address information
 test('get IP address info', async ({ virustotal }) => {
-  const res = await test.step('fetch IP address info', async () => {
-    return virustotal.getIpAddress('8.8.8.8')
+  let res: Awaited<ReturnType<typeof virustotal.getIpAddress>>
+  await test.step('fetch IP address info', async () => {
+    res = await virustotal.getIpAddress('8.8.8.8')
   })
-  await test.step('assert IP response', async () => {
+  await test.step('assert IP status', async () => {
     expect(res.status).toBe(200)
+  })
+  await test.step('assert IP type', async () => {
     expect(res.data?.data?.type).toBe('ip_address')
   })
 })
@@ -91,8 +125,11 @@ test('get IP address info', async ({ virustotal }) => {
 // 5) Handle invalid API key (unauthorized)
 // Uses a temporary client with an obviously bad key
 test('unauthorized with invalid API key', async () => {
-  await test.step('request with invalid API key', async () => {
-    const vt = new VirusTotalClient({ apiKey: 'invalid_key_value' })
+  let vt: VirusTotalClient
+  await test.step('create client with invalid API key', async () => {
+    vt = new VirusTotalClient({ apiKey: 'invalid_key_value' })
+  })
+  await test.step('assert unauthorized response', async () => {
     await expect(async () => {
       await vt.getDomain('example.com')
     }).rejects.toMatchObject({ response: expect.objectContaining({ status: 401 }) })
@@ -101,8 +138,11 @@ test('unauthorized with invalid API key', async () => {
 
 // 6) Request timeout override
 test('custom timeout applied', async () => {
-  await test.step('request with short timeout', async () => {
-    const vt = new VirusTotalClient({ axiosOptions: { timeout: 1_000 } })
+  let vt: VirusTotalClient
+  await test.step('create client with short timeout', async () => {
+    vt = new VirusTotalClient({ axiosOptions: { timeout: 1_000 } })
+  })
+  await test.step('assert timeout behavior', async () => {
     try {
       await vt.getDomain('example.com')
       expect(true).toBeTruthy()
@@ -115,8 +155,9 @@ test('custom timeout applied', async () => {
 // 7) Parallel submit of multiple URLs and basic assertions
 test('parallel analyze multiple URLs', async ({ virustotal }) => {
   const urls = ['https://example.com', 'https://www.mozilla.org', 'https://www.wikipedia.org']
-  const submissions = await test.step('submit URLs in parallel', async () => {
-    return Promise.all(urls.map(u => virustotal.analyzeUrl(u)))
+  let submissions: Awaited<ReturnType<typeof virustotal.analyzeUrl>>[]
+  await test.step('submit URLs in parallel', async () => {
+    submissions = await Promise.all(urls.map(u => virustotal.analyzeUrl(u)))
   })
   await test.step('assert submission status codes', async () => {
     submissions.forEach(s => expect(s.status).toBe(200))
@@ -125,12 +166,19 @@ test('parallel analyze multiple URLs', async ({ virustotal }) => {
 
 // 8) Polling utility returns completed status
 test('waitForAnalysis utility completes', async ({ virustotal }) => {
-  const submit = await test.step('submit URL for analysis', async () => {
-    return virustotal.analyzeUrl('https://www.wikipedia.org')
+  let submit: Awaited<ReturnType<typeof virustotal.analyzeUrl>>
+  await test.step('submit URL for analysis', async () => {
+    submit = await virustotal.analyzeUrl('https://www.wikipedia.org')
   })
-  const analysisId = submit.data?.data?.id as string
+  let analysisId = ''
+  await test.step('extract analysis id', async () => {
+    analysisId = submit.data?.data?.id as string
+  })
+  let analysis: any
   await test.step('wait for analysis completion', async () => {
-    const analysis = await waitForAnalysis(virustotal, analysisId, { timeoutMs: 30_000, intervalMs: 2_000 })
+    analysis = await waitForAnalysis(virustotal, analysisId, { timeoutMs: 30_000, intervalMs: 2_000 })
+  })
+  await test.step('assert analysis status', async () => {
     expect(analysis.data?.attributes?.status).toBe('completed')
   })
 })
@@ -151,7 +199,7 @@ test('get file report by hash (may require privileges)', async ({ virustotal }) 
 
 // 10) Basic rate-limit handling example
 test('graceful handling of potential rate limiting', async ({ virustotal }) => {
-  await test.step('request domain and tolerate rate limit', async () => {
+  await test.step('request domain', async () => {
     try {
       const res = await virustotal.getDomain('example.com')
       expect([200, 429]).toContain(res.status)

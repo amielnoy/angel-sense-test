@@ -33,8 +33,10 @@ test.describe('Purchase API Tests #PurchaseOrder', () => {
     const response = await test.step('create purchase order', async () => {
       return apiHelpers.createOrder(orderData);
     })
-    await test.step('assert order response', async () => {
+    await test.step('assert response status', async () => {
       expect(response.status).toBe(201);
+    })
+    await test.step('assert order id', async () => {
       expect(response.data?.id).toBeTruthy();
     })
   });

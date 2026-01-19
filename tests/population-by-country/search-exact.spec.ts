@@ -11,15 +11,25 @@ test.describe('Population by Country - Search Exact #TableTests', () => {
     await test.step('search for India', async () => {
       await populationPage.setSearch('India')
     })
-    await test.step('verify India row is visible', async () => {
-      const indiaRow = populationPage.rowByCountry('India')
+    let indiaRow = populationPage.rowByCountry('India')
+    await test.step('locate India row', async () => {
+      indiaRow = populationPage.rowByCountry('India')
+    })
+    await test.step('assert India row is visible', async () => {
       await expect(indiaRow).toBeVisible()
     })
-    await test.step('validate population and yearly change values', async () => {
-      const populationText = await populationPage.getCellText('India', 'Population 2025')
-      const yearlyChangeText = await populationPage.getCellText('India', 'Yearly Change')
-
+    let populationText = ''
+    await test.step('read population value', async () => {
+      populationText = await populationPage.getCellText('India', 'Population 2025')
+    })
+    let yearlyChangeText = ''
+    await test.step('read yearly change value', async () => {
+      yearlyChangeText = await populationPage.getCellText('India', 'Yearly Change')
+    })
+    await test.step('assert population is positive', async () => {
       expect(parseNumber(populationText)).toBeGreaterThan(0)
+    })
+    await test.step('assert yearly change is numeric', async () => {
       expect(Number.isNaN(parseNumber(yearlyChangeText))).toBe(false)
     })
   })

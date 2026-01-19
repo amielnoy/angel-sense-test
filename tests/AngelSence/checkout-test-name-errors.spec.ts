@@ -9,25 +9,49 @@ test.describe('checkout tests', () => {
     test('test add to cart empty first name', async ({
                                         checkoutPage,
                                     }) => {
-        await test.step('fill name and trigger validation', async () => {
+        await test.step('fill email', async () => {
             await checkoutPage.setEmail('amielpeled@gmail.com')
+        })
+        await test.step('fill first name', async () => {
             await checkoutPage.setFirstname('')
+        })
+        await test.step('fill last name', async () => {
             await checkoutPage.setLastName('peled')
+        })
+        await test.step('validate required name field', async () => {
             await checkoutPage.validateFieldNotEmpty()
         })
-        await test.step('fill remaining customer details', async () => {
+        await test.step('fill phone', async () => {
             await checkoutPage.setPhone('0549988754')
+        })
+        await test.step('select country', async () => {
             await checkoutPage.selectCountry('Canada')
+        })
+        await test.step('fill address line 1', async () => {
             await checkoutPage.setAddress1('123 Main St')
+        })
+        await test.step('fill address line 2', async () => {
             await checkoutPage.setAddress2('Apt 1')
+        })
+        await test.step('select province', async () => {
             await checkoutPage.selectProvince('Ontario')
+        })
+        await test.step('fill city', async () => {
             await checkoutPage.setCity('Toronto')
+        })
+        await test.step('fill postal code', async () => {
             await checkoutPage.setPostalCode('M5A 1A1')
+        })
+        await test.step('set same as shipping address', async () => {
             await checkoutPage.setSameAsSheepingAddress(true)
         })
-        await test.step('select shipping and payment', async () => {
+        await test.step('select shipping method', async () => {
             await checkoutPage.chooseShippingByKey('express')
+        })
+        await test.step('select payment method', async () => {
             await checkoutPage.choosePaymentMethod('paypal')
+        })
+        await test.step('agree to terms', async () => {
             await checkoutPage.clickAgreeToTerms();
         })
         await test.step('submit order', async () => {
@@ -40,25 +64,49 @@ test.describe('checkout tests', () => {
     test('test add to cart empty last name', async ({
                                                                       checkoutPage,
                                                                   }) => {
-        await test.step('fill name and trigger validation', async () => {
+        await test.step('fill email', async () => {
             await checkoutPage.setEmail('amielpeled@gmail.com')
+        })
+        await test.step('fill first name', async () => {
             await checkoutPage.setFirstname('amiel')
+        })
+        await test.step('fill last name', async () => {
             await checkoutPage.setLastName('')
+        })
+        await test.step('fill phone', async () => {
             await checkoutPage.setPhone('0549988754')
+        })
+        await test.step('validate required name field', async () => {
             await checkoutPage.validateFieldNotEmpty()
         })
-        await test.step('fill remaining customer details', async () => {
+        await test.step('select country', async () => {
             await checkoutPage.selectCountry('Canada')
+        })
+        await test.step('fill address line 1', async () => {
             await checkoutPage.setAddress1('123 Main St')
+        })
+        await test.step('fill address line 2', async () => {
             await checkoutPage.setAddress2('Apt 1')
+        })
+        await test.step('select province', async () => {
             await checkoutPage.selectProvince('Ontario')
+        })
+        await test.step('fill city', async () => {
             await checkoutPage.setCity('Toronto')
+        })
+        await test.step('fill postal code', async () => {
             await checkoutPage.setPostalCode('M5A 1A1')
+        })
+        await test.step('set same as shipping address', async () => {
             await checkoutPage.setSameAsSheepingAddress(true)
         })
-        await test.step('select shipping and payment', async () => {
+        await test.step('select shipping method', async () => {
             await checkoutPage.chooseShippingByKey('express')
+        })
+        await test.step('select payment method', async () => {
             await checkoutPage.choosePaymentMethod('card','123412341234','10/30','123')
+        })
+        await test.step('agree to terms', async () => {
             await checkoutPage.clickAgreeToTerms();
         })
         await test.step('submit order', async () => {

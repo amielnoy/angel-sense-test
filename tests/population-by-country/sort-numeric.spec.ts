@@ -20,22 +20,35 @@ test.describe('Population by Country - Sort Numeric #TableTests', () => {
       }
       return values
     }
-
-    await test.step('sort ascending and validate order', async () => {
-      await populationPage.sortBy('Population 2025', 'asc')
-      const ascValues = await readTopValues(5)
-      console.log('Ascending values:', ascValues)
-      for (let i = 1; i < ascValues.length; i++) {
-        expect(ascValues[i]).toBeLessThanOrEqual(ascValues[i - 1])
+    const assertNonIncreasing = (values: number[]) => {
+      for (let i = 1; i < values.length; i++) {
+        expect(values[i]).toBeLessThanOrEqual(values[i - 1])
       }
+    }
+
+    await test.step('sort by population ascending', async () => {
+      await populationPage.sortBy('Population 2025', 'asc')
+    })
+    let ascValues: number[] = []
+    await test.step('read top population values (asc)', async () => {
+      ascValues = await readTopValues(5)
+    })
+    await test.step('log ascending values', async () => {
+      console.log('Ascending values:', ascValues)
+    })
+    await test.step('assert ascending order', async () => {
+      assertNonIncreasing(ascValues)
     })
 
-    await test.step('sort descending and validate order', async () => {
+    await test.step('sort by population descending', async () => {
       await populationPage.sortBy('Population 2025', 'desc')
-      const descValues = await readTopValues(5)
-      for (let i = 1; i < descValues.length; i++) {
-        expect(descValues[i]).toBeLessThanOrEqual(descValues[i - 1])
-      }
+    })
+    let descValues: number[] = []
+    await test.step('read top population values (desc)', async () => {
+      descValues = await readTopValues(5)
+    })
+    await test.step('assert descending order', async () => {
+      assertNonIncreasing(descValues)
     })
   })
 })

@@ -61,15 +61,19 @@ test.describe('Population by Country - Row Link #TableTests', () => {
       await populationPage.goto()
     })
 
-    const row = await test.step('locate China row', async () => {
-      const chinaRow = populationPage.rowByCountry('China')
-      await expect(chinaRow).toBeVisible()
-      return chinaRow
+    let row = populationPage.rowByCountry('China')
+    await test.step('locate China row', async () => {
+      row = populationPage.rowByCountry('China')
+    })
+    await test.step('assert China row is visible', async () => {
+      await expect(row).toBeVisible()
     })
 
-    await test.step('click China link with popup handling', async () => {
+    await test.step('dismiss popups before click', async () => {
       await dismissPopupIfPresent(populationPage.page)
-      const link = row.locator('a').first()
+    })
+    const link = row.locator('a').first()
+    await test.step('click China link', async () => {
       // Try clicking the link; if a popup blocks the click, dismiss and retry.
       try {
         await link.click({ timeout: 5000 })
@@ -86,11 +90,15 @@ test.describe('Population by Country - Row Link #TableTests', () => {
           await populationPage.page.goto(target)
         }
       }
+    })
+    await test.step('dismiss popups after click', async () => {
       await dismissPopupIfPresent(populationPage.page)
     })
 
-    await test.step('verify destination page', async () => {
+    await test.step('assert destination URL', async () => {
       await expect(populationPage.page).toHaveURL(/\/world-population\/china-population\//)
+    })
+    await test.step('assert destination title', async () => {
       await expect(populationPage.page).toHaveTitle(/China Population/i)
     })
   })

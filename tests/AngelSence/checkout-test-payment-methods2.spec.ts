@@ -27,26 +27,48 @@ test.describe('Checkout Payment Tests', () => {
     });
 
     test('should show error when using invalid credit card', async ({ checkoutPage }) => {
-        await test.step('fill customer details', async () => {
+        await test.step('fill email', async () => {
             await checkoutPage.setEmail(testCustomer.email);
+        })
+        await test.step('fill first name', async () => {
             await checkoutPage.setFirstname(testCustomer.firstName);
+        })
+        await test.step('fill last name', async () => {
             await checkoutPage.setLastName(testCustomer.lastName);
+        })
+        await test.step('fill phone', async () => {
             await checkoutPage.setPhone(testCustomer.phone);
+        })
+        await test.step('select country', async () => {
             await checkoutPage.selectCountry(testCustomer.country);
+        })
+        await test.step('fill address line 1', async () => {
             await checkoutPage.setAddress1(testCustomer.address1);
+        })
+        await test.step('fill address line 2', async () => {
             await checkoutPage.setAddress2(testCustomer.address2);
+        })
+        await test.step('select province', async () => {
             await checkoutPage.selectProvince(testCustomer.province);
+        })
+        await test.step('fill city', async () => {
             await checkoutPage.setCity(testCustomer.city);
+        })
+        await test.step('fill postal code', async () => {
             await checkoutPage.setPostalCode(testCustomer.postalCode);
         })
-        await test.step('configure shipping and payment', async () => {
+        await test.step('select shipping method', async () => {
             await checkoutPage.chooseShippingByKey('express');
+        })
+        await test.step('select payment method', async () => {
             await checkoutPage.choosePaymentMethod(
                 'card',
                 invalidCard.number,
                 invalidCard.expiry,
                 invalidCard.cvv
             );
+        })
+        await test.step('agree to terms', async () => {
             await checkoutPage.clickAgreeToTerms();
         })
         await test.step('submit order', async () => {

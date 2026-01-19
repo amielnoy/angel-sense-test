@@ -14,15 +14,25 @@ test.describe('Population by Country - Sort Text #TableTests', () => {
       expect(names).toEqual(expected)
     }
 
-    await test.step('sort ascending and validate order', async () => {
+    await test.step('sort by country ascending', async () => {
       await populationPage.sortBy('Country (or dependency)', 'asc')
-      const ascNames = await populationPage.getTopCountries(10)
+    })
+    let ascNames: string[] = []
+    await test.step('read top country names (asc)', async () => {
+      ascNames = await populationPage.getTopCountries(10)
+    })
+    await test.step('assert ascending order', async () => {
       compareNames(ascNames, 'asc')
     })
 
-    await test.step('sort descending and validate order', async () => {
+    await test.step('sort by country descending', async () => {
       await populationPage.sortBy('Country (or dependency)', 'desc')
-      const descNames = await populationPage.getTopCountries(10)
+    })
+    let descNames: string[] = []
+    await test.step('read top country names (desc)', async () => {
+      descNames = await populationPage.getTopCountries(10)
+    })
+    await test.step('assert descending order', async () => {
       compareNames(descNames, 'desc')
     })
   })
