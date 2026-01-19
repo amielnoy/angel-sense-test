@@ -10,18 +10,22 @@ const tryAccessibilitySnapshot = async (page: Page) => {
 test.describe('Population by Country - Accessibility Smoke', () => {
   test('table and search are exposed to accessibility tree', async ({ populationPage }) => {
     test.setTimeout(100000)
-    await populationPage.goto()
+    await test.step('navigate to population table', async () => {
+      await populationPage.goto()
+    })
+    await test.step('capture accessibility snapshot', async () => {
+      const snapshot = await tryAccessibilitySnapshot(populationPage.page)
+      if (snapshot) {
+        expect(snapshot).not.toBeNull()
+      }
+    })
+    await test.step('verify table and search accessibility', async () => {
+      await expect(populationPage.table.getByRole('columnheader').first()).toBeVisible()
+      await expect(populationPage.table.getByRole('cell').first()).toBeVisible()
 
-    const snapshot = await tryAccessibilitySnapshot(populationPage.page)
-    if (snapshot) {
-      expect(snapshot).not.toBeNull()
-    }
-
-    await expect(populationPage.table.getByRole('columnheader').first()).toBeVisible()
-    await expect(populationPage.table.getByRole('cell').first()).toBeVisible()
-
-    const searchBox = populationPage.page.getByRole('searchbox')
-    await expect(searchBox).toBeVisible()
-    await expect(searchBox).toHaveAccessibleName(/search/i)
+      const searchBox = populationPage.page.getByRole('searchbox')
+      await expect(searchBox).toBeVisible()
+      await expect(searchBox).toHaveAccessibleName(/search/i)
+    })
   })
 })

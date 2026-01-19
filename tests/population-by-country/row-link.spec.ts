@@ -57,32 +57,41 @@ const dismissPopupIfPresent = async (page: Page) => {
 test.describe('Population by Country - Row Link', () => {
   test('clicking China navigates to China population page', async ({ populationPage }) => {
     test.setTimeout(100000)
-    await populationPage.goto()
+    await test.step('navigate to population table', async () => {
+      await populationPage.goto()
+    })
 
-    const row = populationPage.rowByCountry('China')
-    await expect(row).toBeVisible()
+    const row = await test.step('locate China row', async () => {
+      const chinaRow = populationPage.rowByCountry('China')
+      await expect(chinaRow).toBeVisible()
+      return chinaRow
+    })
 
-    await dismissPopupIfPresent(populationPage.page)
-    const link = row.locator('a').first()
-    // Try clicking the link; if a popup blocks the click, dismiss and retry.
-    try {
-      await link.click({ timeout: 5000 })
-    } catch (err) {
-      // Attempt to dismiss any popup and retry click once
+    await test.step('click China link with popup handling', async () => {
       await dismissPopupIfPresent(populationPage.page)
+      const link = row.locator('a').first()
+      // Try clicking the link; if a popup blocks the click, dismiss and retry.
       try {
         await link.click({ timeout: 5000 })
-      } catch (err2) {
-        // As a last resort, navigate to the href directly (robust fallback)
-        const href = await link.getAttribute('href')
-        if (!href) throw err2
-        const target = new URL(href, populationPage.page.url()).toString()
-        await populationPage.page.goto(target)
+      } catch (err) {
+        // Attempt to dismiss any popup and retry click once
+        await dismissPopupIfPresent(populationPage.page)
+        try {
+          await link.click({ timeout: 5000 })
+        } catch (err2) {
+          // As a last resort, navigate to the href directly (robust fallback)
+          const href = await link.getAttribute('href')
+          if (!href) throw err2
+          const target = new URL(href, populationPage.page.url()).toString()
+          await populationPage.page.goto(target)
+        }
       }
-    }
-    await dismissPopupIfPresent(populationPage.page)
+      await dismissPopupIfPresent(populationPage.page)
+    })
 
-    await expect(populationPage.page).toHaveURL(/\/world-population\/china-population\//)
-    await expect(populationPage.page).toHaveTitle(/China Population/i)
+    await test.step('verify destination page', async () => {
+      await expect(populationPage.page).toHaveURL(/\/world-population\/china-population\//)
+      await expect(populationPage.page).toHaveTitle(/China Population/i)
+    })
   })
 })

@@ -27,32 +27,31 @@ test.describe('Checkout Payment Tests', () => {
     });
 
     test('should show error when using invalid credit card', async ({ checkoutPage }) => {
-        // Fill customer information
-        await checkoutPage.setEmail(testCustomer.email);
-        await checkoutPage.setFirstname(testCustomer.firstName);
-        await checkoutPage.setLastName(testCustomer.lastName);
-        await checkoutPage.setPhone(testCustomer.phone);
-        await checkoutPage.selectCountry(testCustomer.country);
-        await checkoutPage.setAddress1(testCustomer.address1);
-        await checkoutPage.setAddress2(testCustomer.address2);
-        await checkoutPage.selectProvince(testCustomer.province);
-        await checkoutPage.setCity(testCustomer.city);
-        await checkoutPage.setPostalCode(testCustomer.postalCode);
-
-        // Configure shipping
-        await checkoutPage.chooseShippingByKey('express');
-
-        // Payment and submission
-        await checkoutPage.choosePaymentMethod(
-            'card',
-            invalidCard.number,
-            invalidCard.expiry,
-            invalidCard.cvv
-        );
-        await checkoutPage.clickAgreeToTerms();
-
-        // Submit and verify error
-        await checkoutPage.clickPlaceOrder();
+        await test.step('fill customer details', async () => {
+            await checkoutPage.setEmail(testCustomer.email);
+            await checkoutPage.setFirstname(testCustomer.firstName);
+            await checkoutPage.setLastName(testCustomer.lastName);
+            await checkoutPage.setPhone(testCustomer.phone);
+            await checkoutPage.selectCountry(testCustomer.country);
+            await checkoutPage.setAddress1(testCustomer.address1);
+            await checkoutPage.setAddress2(testCustomer.address2);
+            await checkoutPage.selectProvince(testCustomer.province);
+            await checkoutPage.setCity(testCustomer.city);
+            await checkoutPage.setPostalCode(testCustomer.postalCode);
+        })
+        await test.step('configure shipping and payment', async () => {
+            await checkoutPage.chooseShippingByKey('express');
+            await checkoutPage.choosePaymentMethod(
+                'card',
+                invalidCard.number,
+                invalidCard.expiry,
+                invalidCard.cvv
+            );
+            await checkoutPage.clickAgreeToTerms();
+        })
+        await test.step('submit order', async () => {
+            await checkoutPage.clickPlaceOrder();
+        })
         //const errorMessage = await checkoutPage.getErrorMessage();
         //await expect(errorMessage).toContainText('Your card number is invalid');  // Updated to match actual error message
     });

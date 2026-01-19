@@ -5,21 +5,24 @@ import { normalizeNumberText, parseNumber } from './utils'
 test.describe('Population by Country - Parse Edge Cases', () => {
   test('numeric parsing handles unicode minus and non-breaking spaces', async ({ populationPage }) => {
     test.setTimeout(100000)
-    await populationPage.goto()
+    await test.step('navigate to population table', async () => {
+      await populationPage.goto()
+    })
+    await test.step('collect values with special characters', async () => {
+      const rows = await populationPage.getTableData(50)
+      const values = rows.flatMap(row => [row['Yearly Change'], row['Net Change'], row['Migrants (net)']])
+        .filter((value): value is string => Boolean(value))
 
-    const rows = await populationPage.getTableData(50)
-    const values = rows.flatMap(row => [row['Yearly Change'], row['Net Change'], row['Migrants (net)']])
-      .filter((value): value is string => Boolean(value))
+      const specialValues = values.filter(v => /[\u2212\u00a0]/.test(v))
+      const samples = specialValues.length > 0 ? specialValues : values.slice(0, 10)
 
-    const specialValues = values.filter(v => /[\u2212\u00a0]/.test(v))
-    const samples = specialValues.length > 0 ? specialValues : values.slice(0, 10)
+      expect(samples.length).toBeGreaterThan(0)
 
-    expect(samples.length).toBeGreaterThan(0)
-
-    for (const raw of samples) {
-      const normalized = normalizeNumberText(raw)
-      const parsed = parseNumber(normalized)
-      expect(Number.isNaN(parsed)).toBe(false)
-    }
+      for (const raw of samples) {
+        const normalized = normalizeNumberText(raw)
+        const parsed = parseNumber(normalized)
+        expect(Number.isNaN(parsed)).toBe(false)
+      }
+    })
   })
 })

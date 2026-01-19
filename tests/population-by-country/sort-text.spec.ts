@@ -4,7 +4,9 @@ import { expect } from '@playwright/test'
 test.describe('Population by Country - Sort Text', () => {
   test('country column sorts alphabetically', async ({ populationPage }) => {
     test.setTimeout(100000)
-    await populationPage.goto()
+    await test.step('navigate to population table', async () => {
+      await populationPage.goto()
+    })
 
     const compareNames = (names: string[], direction: 'asc' | 'desc') => {
       const sorted = [...names].sort((a, b) => a.localeCompare(b, 'en', { sensitivity: 'base' }))
@@ -12,12 +14,16 @@ test.describe('Population by Country - Sort Text', () => {
       expect(names).toEqual(expected)
     }
 
-    await populationPage.sortBy('Country (or dependency)', 'asc')
-    const ascNames = await populationPage.getTopCountries(10)
-    compareNames(ascNames, 'asc')
+    await test.step('sort ascending and validate order', async () => {
+      await populationPage.sortBy('Country (or dependency)', 'asc')
+      const ascNames = await populationPage.getTopCountries(10)
+      compareNames(ascNames, 'asc')
+    })
 
-    await populationPage.sortBy('Country (or dependency)', 'desc')
-    const descNames = await populationPage.getTopCountries(10)
-    compareNames(descNames, 'desc')
+    await test.step('sort descending and validate order', async () => {
+      await populationPage.sortBy('Country (or dependency)', 'desc')
+      const descNames = await populationPage.getTopCountries(10)
+      compareNames(descNames, 'desc')
+    })
   })
 })

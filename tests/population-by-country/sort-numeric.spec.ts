@@ -5,7 +5,9 @@ import { getHeaderIndex, getRowsLocator, parseNumber } from './utils'
 test.describe('Population by Country - Sort Numeric', () => {
   test('population column sorts ascending and descending', async ({ populationPage }) => {
     test.setTimeout(100000)
-    await populationPage.goto()
+    await test.step('navigate to population table', async () => {
+      await populationPage.goto()
+    })
 
     const columnIndex = await getHeaderIndex(populationPage, 'Population 2025')
 
@@ -20,16 +22,20 @@ test.describe('Population by Country - Sort Numeric', () => {
       return values
     }
 
-    await populationPage.sortBy('Population 2025', 'asc')
-    const ascValues = await readTopValues(5)
-    for (let i = 1; i < ascValues.length; i++) {
-      expect(ascValues[i]).toBeGreaterThanOrEqual(ascValues[i - 1])
-    }
+    await test.step('sort ascending and validate order', async () => {
+      await populationPage.sortBy('Population 2025', 'asc')
+      const ascValues = await readTopValues(5)
+      for (let i = 1; i < ascValues.length; i++) {
+        expect(ascValues[i]).toBeGreaterThanOrEqual(ascValues[i - 1])
+      }
+    })
 
-    await populationPage.sortBy('Population 2025', 'desc')
-    const descValues = await readTopValues(5)
-    for (let i = 1; i < descValues.length; i++) {
-      expect(descValues[i]).toBeLessThanOrEqual(descValues[i - 1])
-    }
+    await test.step('sort descending and validate order', async () => {
+      await populationPage.sortBy('Population 2025', 'desc')
+      const descValues = await readTopValues(5)
+      for (let i = 1; i < descValues.length; i++) {
+        expect(descValues[i]).toBeLessThanOrEqual(descValues[i - 1])
+      }
+    })
   })
 })

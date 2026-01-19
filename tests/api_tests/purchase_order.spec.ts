@@ -30,9 +30,13 @@ test.describe('Purchase API Tests', () => {
       line_items: [{ product_id: 1450714, quantity: 1 }]
     };
 
-    const response = await apiHelpers.createOrder(orderData);
-    expect(response.status).toBe(201);
-    expect(response.data?.id).toBeTruthy();
+    const response = await test.step('create purchase order', async () => {
+      return apiHelpers.createOrder(orderData);
+    })
+    await test.step('assert order response', async () => {
+      expect(response.status).toBe(201);
+      expect(response.data?.id).toBeTruthy();
+    })
   });
 });
 // ...existing code...
