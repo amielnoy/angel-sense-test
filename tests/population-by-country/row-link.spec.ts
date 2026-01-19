@@ -20,7 +20,7 @@ const dismissPopupIfPresent = async (page: Page) => {
       if (await first.isVisible({ timeout: 1000 })) {
         await first.click({ timeout: 2000 }).catch(() => {})
         // allow UI to settle after dismissal
-        await page.waitForTimeout(300)
+        await page.waitForLoadState('domcontentloaded', { timeout: 1000 }).catch(() => {})
         break
       }
     } catch {}
@@ -29,7 +29,7 @@ const dismissPopupIfPresent = async (page: Page) => {
   // Try pressing Escape to close modals/dialogs
   try {
     await page.keyboard.press('Escape')
-    await page.waitForTimeout(250)
+    await page.waitForLoadState('domcontentloaded', { timeout: 1000 }).catch(() => {})
   } catch {}
 
   // As a last resort, remove likely overlay elements from the page DOM
@@ -50,7 +50,7 @@ const dismissPopupIfPresent = async (page: Page) => {
       // Also try to re-enable pointer events on body
       try { document.body.style.pointerEvents = 'auto' } catch (e) {}
     })
-    await page.waitForTimeout(200)
+    await page.waitForLoadState('domcontentloaded', { timeout: 1000 }).catch(() => {})
   } catch {}
 }
 

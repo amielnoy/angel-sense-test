@@ -18,7 +18,7 @@ dotenv.config({ path: '.env' });
 export default defineConfig({
   testDir: './tests',
   /* test timeout */
-  timeout: 60_000,
+  timeout: 120_000, // Increased to match test-specific timeouts (100000ms) with buffer
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
@@ -84,7 +84,10 @@ export default defineConfig({
     },
     video: 'retain-on-failure',
     testIdAttribute: 'data-testid',
-
+    
+    /* Network settings for CI stability */
+    actionTimeout: 30_000, // Increase action timeout for slow networks
+    navigationTimeout: 60_000, // Increase navigation timeout for external sites
   },
 
   /* Configure projects for major browsers */

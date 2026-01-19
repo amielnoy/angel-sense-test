@@ -41,7 +41,10 @@ export class PopulationByCountryPage {
   }
 
   async goto() {
-    await this.page.goto(PopulationByCountryPage.url, { waitUntil: 'domcontentloaded' })
+    await this.page.goto(PopulationByCountryPage.url, { 
+      waitUntil: 'domcontentloaded',
+      timeout: 60_000 
+    })
     // Best-effort handle cookie/consent banners if present
     await this.dismissConsentIfPresent()
     await this.waitForReady()
@@ -49,24 +52,34 @@ export class PopulationByCountryPage {
 
   /** Ready when table is visible and at least one row is rendered */
   async waitForReady() {
-    // Wait for table element to appear
-    await this.table.first().waitFor({ state: 'visible' })
+    // Wait for table element to appear with longer timeout for CI
+    await this.table.first().waitFor({ state: 'visible', timeout: 30_000 })
+    
     // Wait for DataTables to initialize (wrapper appears) – best effort
-    await this.page.locator('.dataTables_wrapper').first().waitFor({ state: 'attached', timeout: 10_000 }).catch(() => {})
-    // Wait for at least one row via role or CSS fallback
-    const firstRoleRow = this.rowsRole.first()
-    const firstCssRow = this.rowsCss.first()
-    await Promise.race([
-      firstRoleRow.waitFor({ state: 'visible' }),
-      firstCssRow.waitFor({ state: 'visible' }),
-    ])
+    await this.page.locator('.dataTables_wrapper').first().waitFor({ state: 'attached', timeout: 15_000 }).catch(() => {})
+    
+    // Wait for at least one row - try both selectors with proper error handling
+    try {
+      const firstRoleRow = this.rowsRole.first()
+      await firstRoleRow.waitFor({ state: 'visible', timeout: 20_000 })
+    } catch {
+      // Fallback to CSS selector if role-based fails
+      const firstCssRow = this.rowsCss.first()
+      await firstCssRow.waitFor({ state: 'visible', timeout: 20_000 })
+    }
+    
+    // Additional wait to ensure table is fully loaded
+    await this.page.waitForLoadState('networkidle', { timeout: 10_000 }).catch(() => {})
   }
 
   /** Perform a DataTables search (client-side filter) */
   async setSearch(query: string) {
     const input = (await this.searchBox.count()) > 0 ? this.searchBox : this.searchBoxCss
+    await input.waitFor({ state: 'visible', timeout: 10_000 })
     await input.fill('')
     await input.fill(query)
+    // Wait for search to complete
+    await this.page.waitForTimeout(500)
   }
 
   async clearSearch() {
@@ -274,14 +287,41 @@ export class PopulationByCountryPage {
 
   // Dismiss common consent/cookie banners if present (non-fatal)
   private async dismissConsentIfPresent() {
+    // Wait a bit for consent banner to appear
+    await this.page.waitForTimeout(500)
+    
+    const selectors = [
+      'button:has-text("Accept")',
+      'button:has-text("Accept All")',
+      'button:has-text("I Agree")',
+      'button:has-text("Agree")',
+      'a:has-text("Accept")',
+      '[id*="accept"]',
+      '[class*="accept"]',
+      '[class*="consent"]',
+    ]
+    
+    for (const selector of selectors) {
+      try {
+        const element = this.page.locator(selector).first()
+        if (await element.isVisible({ timeout: 2000 })) {
+          await element.click({ timeout: 2000 })
+          await this.page.waitForTimeout(500) // Wait for banner to disappear
+          break
+        }
+      } catch {}
+    }
+    
+    // Also try role-based selectors
     const buttons = [
       this.page.getByRole('button', { name: /accept all|accept|i agree|agree|consent/i }),
       this.page.getByRole('link', { name: /accept all|accept|i agree|agree|consent/i }),
     ]
     for (const b of buttons) {
       try {
-        if (await b.isVisible({ timeout: 1000 })) {
-          await b.click({ timeout: 1000 })
+        if (await b.isVisible({ timeout: 2000 })) {
+          await b.click({ timeout: 2000 })
+          await this.page.waitForTimeout(500)
           break
         }
       } catch {}
