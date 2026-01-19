@@ -1,34 +1,112 @@
-name: "Copilot Setup Steps"
+name: Playwright Tests with Allure 3
 
 on:
-  workflow_dispatch:
   push:
-    paths:
-      - .github/workflows/copilot-setup-steps.yml
+    branches: [ main, develop ]
   pull_request:
-    paths:
-      - .github/workflows/copilot-setup-steps.yml
+    branches: [ main, develop ]
+  workflow_dispatch:
 
 jobs:
-  copilot-setup-steps:
+  test:
     runs-on: ubuntu-latest
+    timeout-minutes: 60
 
     permissions:
       contents: read
+      pull-requests: write
 
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-    - uses: actions/setup-node@v4
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
       with:
-        node-version: lts/*
+        node-version: 'lts/*'
+        cache: 'npm'
 
     - name: Install dependencies
       run: npm ci
 
     - name: Install Playwright Browsers
-      run: npx playwright install --with-deps
+      run: npx playwright install --with-deps chromium
 
-    # Customize this step as needed
-    - name: Build application
-      run: npx run build
+    - name: Install Allure 3 CLI
+      run: npm install -g allure
+
+    - name: Run Playwright tests
+      run: npm test
+      env:
+        CI: true
+        BASE_URL: ${{ secrets.BASE_URL || 'https://www.angelsense.com' }}
+        WC_CONSUMER_KEY: ${{ secrets.WC_CONSUMER_KEY }}
+        WC_CONSUMER_SECRET: ${{ secrets.WC_CONSUMER_SECRET }}
+      continue-on-error: true
+
+    - name: Generate Allure 3 Report
+      if: always()
+      run: |
+        allure generate allure-results --clean -o allure-report || echo "No test results to generate report"
+
+    - name: Upload Allure Results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: allure-results
+        path: allure-results/
+        retention-days: 30
+        if-no-files-found: ignore
+
+    - name: Upload Allure Report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: allure-report
+        path: allure-report/
+        retention-days: 30
+        if-no-files-found: ignore
+
+    - name: Upload Playwright Report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: playwright-report
+        path: playwright-report/
+        retention-days: 30
+        if-no-files-found: ignore
+
+    - name: Upload Test Results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results
+        path: test-results/
+        retention-days: 7
+        if-no-files-found: ignore
+
+    - name: Comment PR with Allure Report
+      if: github.event_name == 'pull_request' && always()
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          const path = require('path');
+          
+          // Check if allure-report exists
+          const reportPath = path.join(process.cwd(), 'allure-report');
+          if (fs.existsSync(reportPath)) {
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '## 📊 Allure Test Report\n\n' +
+                    'Allure 3 test report has been generated and uploaded as an artifact.\n\n' +
+                    '**To view the report:**\n' +
+                    '1. Go to the "Actions" tab\n' +
+                    '2. Click on this workflow run\n' +
+                    '3. Download the "allure-report" artifact\n' +
+                    '4. Extract and open `index.html` in your browser\n\n' +
+                    'Or use: `allure serve <extracted-folder>`'
+            });
+          }
