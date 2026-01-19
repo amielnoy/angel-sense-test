@@ -40,7 +40,7 @@ jobs:
       run: npm install -g allure
 
     - name: Run Playwright tests
-      run: npx playwright test tests/angel_sense_tests --shard=${{ matrix.shard }}/4
+      run: npx playwright test tests --shard=${{ matrix.shard }}/4
       env:
         CI: true
         BASE_URL: ${{ secrets.BASE_URL || 'https://www.angelsense.com' }}
