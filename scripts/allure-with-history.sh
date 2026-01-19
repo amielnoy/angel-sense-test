@@ -17,13 +17,6 @@ mkdir -p "$HISTORY_DIR"
 # Remove old report
 rm -rf "$REPORT_DIR" || true
 
-# If history exists from previous runs, inject it into results before generation
-if [ -d "$HISTORY_DIR" ] && [ "$(ls -A $HISTORY_DIR 2>/dev/null)" ]; then
-  echo "Merging history from previous runs into results..."
-  mkdir -p "$RESULTS_DIR/history"
-  cp -r "$HISTORY_DIR"/* "$RESULTS_DIR/history/" 2>/dev/null || true
-fi
-
 # Generate new report
 echo "Generating Allure report..."
 npx allure generate "$RESULTS_DIR" -o "$REPORT_DIR" || {

@@ -3,7 +3,7 @@ import { defineConfig } from 'allure';
 export default defineConfig({
   name: 'Playwright Test Report',
   output: './allure-report',
-  historyPath: './allure-history',
+  historyPath: './allure-history/history.jsonl',
   historyLimit: 20,
   plugins: {
     awesome: {
