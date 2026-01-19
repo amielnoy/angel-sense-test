@@ -117,6 +117,9 @@ jobs:
       with:
         node-version: 'lts/*'
 
+    - name: Install dependencies
+      run: npm ci --prefer-offline --no-audit
+
     - name: Install Allure 3 CLI
       run: npm install -g allure || echo "Allure CLI installation failed, will use npx"
 
