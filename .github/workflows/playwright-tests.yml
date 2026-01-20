@@ -78,7 +78,8 @@ jobs:
       id: run-tests
       run: |
         echo "Running shard ${{ matrix.shardIndex }} of ${{ matrix.totalShards }}"
-        allurectl watch -- npx playwright test tests --shard=${{ matrix.shardIndex }}/${{ matrix.totalShards }} --reporter=list
+        mkdir -p allure-results
+        allurectl watch -- npx playwright test tests --shard=${{ matrix.shardIndex }}/${{ matrix.totalShards }} --reporter=list,allure-playwright
       env:
         CI: true
         BASE_URL: ${{ secrets.BASE_URL || 'https://www.angelsense.com' }}
