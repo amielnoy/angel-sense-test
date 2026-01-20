@@ -6,10 +6,15 @@ export default defineConfig({
   historyPath: './allure-history/history.jsonl',
   historyLimit: 20,
   plugins: {
-    awesome: {
+    awesomeAll: {
+      import: "@allurereport/plugin-awesome",
       options: {
+        reportName: "Allure Awesome: all test",
         singleFile: false,
-        reportLanguage: 'en',
+        reportLanguage: "en",
+        open: false,
+        filter: ({ labels }) => !labels.find(({ name, value }) => name === "language" && value === "typescript"),
+        publish: true,
       },
     },
   },
