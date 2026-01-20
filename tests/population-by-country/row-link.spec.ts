@@ -7,13 +7,8 @@ const dismissPopupIfPresent = async (page: Page) => {
       // role-based common accept/close buttons
       context.getByText('Close'),
       context.getByRole('button', { name: /accept all|accept|agree|i agree|continue|ok|got it|close|dismiss|no thanks/i }),
-      //context.getByRole('link', { name: /accept all|accept|agree|i agree|continue|ok|got it|close|dismiss|no thanks/i }),
-      // text-based fallbacks
       context.locator('button:has-text("Close")'),
-      //context.locator('button:has-text("No thanks")'),
       context.locator('button[aria-label*="close"i]'),
-      // generic selectors often used by ad libraries
-    //context.locator('.modal-close, .modal__close, .close, .close-btn, .btn-close, .vignette-close, .ad-overlay .close'),
     ]
 
     for (const candidate of candidates) {
@@ -81,6 +76,10 @@ test.describe('Population by Country - Row Link #TableTests', () => {
       await dismissPopupIfPresent(populationPage.page)
     })
     const link = row.locator('a').first()
+    const linkHref = await test.step('capture China link href', async () => {
+      return await link.getAttribute('href')
+    })
+    let targetPage: Page = populationPage.page
     await test.step('attach popup/dialog accept handler', async () => {
       populationPage.page.once('dialog', async dialog => {
         await dialog.accept()
@@ -89,41 +88,55 @@ test.describe('Population by Country - Row Link #TableTests', () => {
     await test.step('click China link', async () => {
       // Try clicking the link; if a popup blocks the click, dismiss and retry.
       try {
+        const popupPromise = populationPage.page.context().waitForEvent('page').catch(() => null)
         await link.click({ timeout: 10000 })
+        const popup = await popupPromise
+        if (popup) {
+          targetPage = popup
+          await targetPage.waitForLoadState('domcontentloaded').catch(() => {})
+        }
         await populationPage.page.waitForTimeout(500)
         for (let i = 0; i < 3; i++) {
-          await dismissPopupIfPresent(populationPage.page)
-          await populationPage.page.waitForTimeout(300)
+          await dismissPopupIfPresent(targetPage)
+          await targetPage.waitForTimeout(300)
         }
       } catch (err) {
         // Attempt to dismiss any popup and retry click once
-        await dismissPopupIfPresent(populationPage.page)
+        await dismissPopupIfPresent(targetPage)
         try {
+          const popupPromise = populationPage.page.context().waitForEvent('page').catch(() => null)
           await link.click({ timeout: 5000 })
-          await populationPage.page.waitForTimeout(500)
+          const popup = await popupPromise
+          if (popup) {
+            targetPage = popup
+            await targetPage.waitForLoadState('domcontentloaded').catch(() => {})
+          }
+          await targetPage.waitForTimeout(500)
           for (let i = 0; i < 3; i++) {
-            await dismissPopupIfPresent(populationPage.page)
-            await populationPage.page.waitForTimeout(300)
+            await dismissPopupIfPresent(targetPage)
+            await targetPage.waitForTimeout(300)
           }
         } catch (err2) {
           // As a last resort, navigate to the href directly (robust fallback)
-          const href = await link.getAttribute('href')
-          if (!href) throw err2
-          const target = new URL(href, populationPage.page.url()).toString()
-          await populationPage.page.goto(target)
-          await populationPage.page.waitForTimeout(500)
+          if (!linkHref) throw err2
+          if (targetPage.isClosed()) {
+            targetPage = await populationPage.page.context().newPage()
+          }
+          const target = new URL(linkHref, targetPage.url()).toString()
+          await targetPage.goto(target)
+          await targetPage.waitForTimeout(500)
           for (let i = 0; i < 3; i++) {
-            await dismissPopupIfPresent(populationPage.page)
-            await populationPage.page.waitForTimeout(300)
+            await dismissPopupIfPresent(targetPage)
+            await targetPage.waitForTimeout(300)
           }
         }
       }
     })
     await test.step('assert destination URL', async () => {
-      await expect(populationPage.page).toHaveURL(/\/world-population\/china-population\//)
+      await expect(targetPage).toHaveURL(/\/world-population\/china-population\//)
     })
     await test.step('assert destination title', async () => {
-      await expect(populationPage.page).toHaveTitle(/China Population/i)
+      await expect(targetPage).toHaveTitle(/China Population/i)
     })
   })
 })

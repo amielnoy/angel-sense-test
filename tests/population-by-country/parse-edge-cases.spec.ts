@@ -19,9 +19,22 @@ test.describe('Population by Country - Parse Edge Cases #TableTests', () => {
     await test.step('navigate to population table', async () => {
       await populationPage.goto()
     })
+    await test.step('wait for table to be ready', async () => {
+      await populationPage.waitForReady()
+    })
+    const readRows = async (limit: number) => {
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          const rows = await populationPage.getTableData(limit)
+          if (rows.length > 0) return rows
+        } catch {}
+        await populationPage.waitForReady()
+      }
+      return populationPage.getTableData(limit)
+    }
     let rows: Awaited<ReturnType<typeof populationPage.getTableData>> = []
     await test.step('read table data', async () => {
-      rows = await populationPage.getTableData(50)
+      rows = await readRows(50)
     })
     let values: string[] = []
     await test.step('collect numeric fields', async () => {

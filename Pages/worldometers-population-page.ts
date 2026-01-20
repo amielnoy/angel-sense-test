@@ -167,20 +167,24 @@ export class PopulationByCountryPage {
     const rows = (await this.rowsRole.count()) > 0 ? this.rowsRole : this.rowsCss
     const total = await rows.count()
     const count = typeof limit === 'number' ? Math.min(limit, total) : total
-    const data: RowData[] = []
-    for (let r = 0; r < count; r++) {
-      const row = rows.nth(r)
-      const cells = row.locator('td')
-      const cellCount = await cells.count()
-      const obj: RowData = {}
-      for (let c = 0; c < Math.min(headers.length, cellCount); c++) {
-        const key = headers[c]
-        const val = (await cells.nth(c).textContent())?.trim() ?? ''
-        obj[key] = val
+    try {
+      const data: RowData[] = []
+      for (let r = 0; r < count; r++) {
+        const row = rows.nth(r)
+        const cells = row.locator('td')
+        const texts = await cells.evaluateAll(nodes => nodes.map(n => (n.textContent || '').trim()))
+        const cellCount = Math.min(headers.length, texts.length)
+        const obj: RowData = {}
+        for (let c = 0; c < cellCount; c++) {
+          const key = headers[c]
+          obj[key] = texts[c] || ''
+        }
+        data.push(obj)
       }
-      data.push(obj)
+      if (data.length > 0) return data
+    } catch {
+      // UI parsing can be flaky due to popups; fall back to HTML parsing.
     }
-    if (data.length > 0) return data
 
     const html = await this.fetchTableHtml()
     if (html) {
