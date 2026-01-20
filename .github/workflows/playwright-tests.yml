@@ -1,18 +1,19 @@
-# Playwright Tests with Allure 3 — concurrency removed so shards run in parallel
 name: Playwright Tests with Allure 3
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main, amiel ]
   pull_request:
-    branches: [ main, develop ]
+    branches: [ main, amiel ]
   workflow_dispatch:
 
 jobs:
   test:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    # concurrency removed so runs won't cancel each other
+    concurrency:
+      group: playwright-${{ github.workflow }}-${{ github.ref }}-${{ github.head_ref || github.sha }}
+      cancel-in-progress: true
     strategy:
       fail-fast: false
       matrix:
@@ -136,7 +137,7 @@ jobs:
   deploy:
     needs: test
     runs-on: ubuntu-latest
-    if: needs.test.result == 'success' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop') && github.event_name == 'push'
+    if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop') && github.event_name == 'push'
     permissions:
       contents: read
       pages: write
