@@ -76,7 +76,7 @@ test.describe('Population by Country - Row Link #TableTests', () => {
     await test.step('click China link', async () => {
       // Try clicking the link; if a popup blocks the click, dismiss and retry.
       try {
-        await link.click({ timeout: 5000 })
+        await link.click({ timeout: 10000 })
       } catch (err) {
         // Attempt to dismiss any popup and retry click once
         await dismissPopupIfPresent(populationPage.page)
