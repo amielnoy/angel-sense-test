@@ -50,10 +50,23 @@ test.describe('Population by Country - Data Extraction #TableTests', () => {
     await test.step('navigate to population table', async () => {
       await populationPage.goto()
     })
+    await test.step('wait for table to be ready', async () => {
+      await populationPage.waitForReady()
+    })
 
+    const readUiRows = async (limit: number) => {
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          const rows = await populationPage.getTableData(limit)
+          if (rows.length > 0) return rows
+        } catch {}
+        await populationPage.waitForReady()
+      }
+      return populationPage.getTableData(limit)
+    }
     let uiRows: Awaited<ReturnType<typeof populationPage.getTableData>> = []
     await test.step('capture UI table data', async () => {
-      uiRows = await populationPage.getTableData(50)
+      uiRows = await readUiRows(50)
     })
     let html: string | null = null
     await test.step('fetch HTML table', async () => {

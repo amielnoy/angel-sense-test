@@ -4,6 +4,14 @@ import { expect } from '@playwright/test';
 
 test.describe('Purchase API Tests #PurchaseOrder', () => {
   test('should create a purchase order successfully', async ({ apiHelpers }) => {
+    const baseUrl = process.env.BASE_URL
+    const key = process.env.WC_CONSUMER_KEY
+    const secret = process.env.WC_CONSUMER_SECRET
+    test.skip(
+      !baseUrl || !key || !secret,
+      'Missing BASE_URL/WC_CONSUMER_KEY/WC_CONSUMER_SECRET; skipping protected API test.',
+    )
+
     const orderData = {
       payment_method: 'stripe',
       payment_method_title: 'Credit Card',

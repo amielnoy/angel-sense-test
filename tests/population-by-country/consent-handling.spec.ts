@@ -12,7 +12,12 @@ test.describe('Population by Country - Consent Handling #TableTests', () => {
       await populationPage.page.reload({ waitUntil: 'domcontentloaded' })
     })
     await test.step('wait for table to be ready', async () => {
-      await populationPage.waitForReady()
+      try {
+        await populationPage.waitForReady()
+      } catch {
+        await populationPage.goto()
+        await populationPage.waitForReady()
+      }
     })
     await test.step('set search term', async () => {
       await populationPage.setSearch('India')

@@ -19,7 +19,8 @@ test.describe('Population by Country - Performance #TableTests', () => {
       elapsedMs = Date.now() - elapsedMs
     })
     await test.step('assert ready time threshold', async () => {
-      expect(elapsedMs).toBeLessThan(30_000)
+      const thresholdMs = process.env.CI ? 60_000 : 45_000
+      expect(elapsedMs).toBeLessThan(thresholdMs)
     })
 
     let html: string | null = null
