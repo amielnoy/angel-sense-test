@@ -1,3 +1,4 @@
+# Playwright Tests with Allure 3 — concurrency removed so shards run in parallel
 name: Playwright Tests with Allure 3
 
 on:
@@ -11,9 +12,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    concurrency:
-      group: playwright-${{ github.workflow }}-${{ github.ref }}-${{ github.head_ref || github.sha }}
-      cancel-in-progress: true
+    # concurrency removed so runs won't cancel each other
     strategy:
       fail-fast: false
       matrix:
