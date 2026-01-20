@@ -160,7 +160,7 @@ jobs:
       run: npm ci --prefer-offline --no-audit
 
     - name: Install Allure 3 CLI (pinned)
-      run: npm install -g @shelex/allure-commandline@2.13.8 --no-audit --no-fund
+      run: npm install -g allure-commandline@2.13.8 --no-audit --no-fund
 
     - name: Download Allure Results
       uses: actions/download-artifact@v4
