@@ -164,7 +164,7 @@ jobs:
     - name: Download Allure Results
       uses: actions/download-artifact@v4
       with:
-        pattern: allure-results-shard-*
+        pattern: allure-results-${{ github.run_id }}-shard-*
         path: allure-results/
         merge-multiple: true
 
