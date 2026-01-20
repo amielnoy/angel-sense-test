@@ -1,29 +1,38 @@
 import test from '../../Fixtures/testSetup'
-import { expect, Page } from '@playwright/test'
+import { expect, Frame, Page } from '@playwright/test'
 
 const dismissPopupIfPresent = async (page: Page) => {
-  const candidates = [
-    // role-based common accept/close buttons
-    page.getByText("Close"),
-    page.getByRole('link', { name: /accept all|accept|agree|i agree|continue|ok|got it|close|dismiss|no thanks/i }),
-    // text-based fallbacks
-    page.locator('button:has-text("Close")'),
-    page.locator('button:has-text("No thanks")'),
-    page.locator('button[aria-label*="close"i]'),
-    // generic selectors often used by ad libraries
-    page.locator('.modal-close, .modal__close, .close, .close-btn, .btn-close, .vignette-close, .ad-overlay .close'),
-  ]
+  const tryDismissInContext = async (context: Page | Frame) => {
+    const candidates = [
+      // role-based common accept/close buttons
+      context.getByText('Close'),
+      context.getByRole('button', { name: /accept all|accept|agree|i agree|continue|ok|got it|close|dismiss|no thanks/i }),
+      //context.getByRole('link', { name: /accept all|accept|agree|i agree|continue|ok|got it|close|dismiss|no thanks/i }),
+      // text-based fallbacks
+      context.locator('button:has-text("Close")'),
+      //context.locator('button:has-text("No thanks")'),
+      context.locator('button[aria-label*="close"i]'),
+      // generic selectors often used by ad libraries
+    //context.locator('.modal-close, .modal__close, .close, .close-btn, .btn-close, .vignette-close, .ad-overlay .close'),
+    ]
 
-  for (const candidate of candidates) {
-    try {
-      const first = candidate.first()
-      if (await first.isVisible({ timeout: 1000 })) {
-        await first.click({ timeout: 2000 }).catch(() => {})
-        // allow UI to settle after dismissal
-        await page.waitForLoadState('domcontentloaded', { timeout: 1000 }).catch(() => {})
-        break
-      }
-    } catch {}
+    for (const candidate of candidates) {
+      try {
+        const first = candidate.first()
+        if (await first.isVisible({ timeout: 2000 })) {
+          await first.click({ timeout: 2000 }).catch(() => {})
+          // allow UI to settle after dismissal
+          await page.waitForLoadState('domcontentloaded', { timeout: 1000 }).catch(() => {})
+          return true
+        }
+      } catch {}
+    }
+    return false
+  }
+
+  await tryDismissInContext(page)
+  for (const frame of page.frames()) {
+    await tryDismissInContext(frame)
   }
 
   // Try pressing Escape to close modals/dialogs
@@ -82,14 +91,20 @@ test.describe('Population by Country - Row Link #TableTests', () => {
       try {
         await link.click({ timeout: 10000 })
         await populationPage.page.waitForTimeout(500)
-        await dismissPopupIfPresent(populationPage.page)
+        for (let i = 0; i < 3; i++) {
+          await dismissPopupIfPresent(populationPage.page)
+          await populationPage.page.waitForTimeout(300)
+        }
       } catch (err) {
         // Attempt to dismiss any popup and retry click once
         await dismissPopupIfPresent(populationPage.page)
         try {
           await link.click({ timeout: 5000 })
           await populationPage.page.waitForTimeout(500)
-          await dismissPopupIfPresent(populationPage.page)
+          for (let i = 0; i < 3; i++) {
+            await dismissPopupIfPresent(populationPage.page)
+            await populationPage.page.waitForTimeout(300)
+          }
         } catch (err2) {
           // As a last resort, navigate to the href directly (robust fallback)
           const href = await link.getAttribute('href')
@@ -97,7 +112,10 @@ test.describe('Population by Country - Row Link #TableTests', () => {
           const target = new URL(href, populationPage.page.url()).toString()
           await populationPage.page.goto(target)
           await populationPage.page.waitForTimeout(500)
-          await dismissPopupIfPresent(populationPage.page)
+          for (let i = 0; i < 3; i++) {
+            await dismissPopupIfPresent(populationPage.page)
+            await populationPage.page.waitForTimeout(300)
+          }
         }
       }
     })
