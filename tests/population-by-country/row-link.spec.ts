@@ -56,7 +56,6 @@ const dismissPopupIfPresent = async (page: Page) => {
 
 test.describe('Population by Country - Row Link #TableTests', () => {
   test('clicking China navigates to China population page', async ({ populationPage }) => {
-    test.setTimeout(100000)
     await test.step('navigate to population table', async () => {
       await populationPage.goto()
     })
@@ -73,28 +72,35 @@ test.describe('Population by Country - Row Link #TableTests', () => {
       await dismissPopupIfPresent(populationPage.page)
     })
     const link = row.locator('a').first()
+    await test.step('attach popup/dialog accept handler', async () => {
+      populationPage.page.once('dialog', async dialog => {
+        await dialog.accept()
+      })
+    })
     await test.step('click China link', async () => {
       // Try clicking the link; if a popup blocks the click, dismiss and retry.
       try {
         await link.click({ timeout: 10000 })
+        await populationPage.page.waitForTimeout(500)
+        await dismissPopupIfPresent(populationPage.page)
       } catch (err) {
         // Attempt to dismiss any popup and retry click once
         await dismissPopupIfPresent(populationPage.page)
         try {
           await link.click({ timeout: 5000 })
+          await populationPage.page.waitForTimeout(500)
+          await dismissPopupIfPresent(populationPage.page)
         } catch (err2) {
           // As a last resort, navigate to the href directly (robust fallback)
           const href = await link.getAttribute('href')
           if (!href) throw err2
           const target = new URL(href, populationPage.page.url()).toString()
           await populationPage.page.goto(target)
+          await populationPage.page.waitForTimeout(500)
+          await dismissPopupIfPresent(populationPage.page)
         }
       }
     })
-    await test.step('dismiss popups after click', async () => {
-      await dismissPopupIfPresent(populationPage.page)
-    })
-
     await test.step('assert destination URL', async () => {
       await expect(populationPage.page).toHaveURL(/\/world-population\/china-population\//)
     })
